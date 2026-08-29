@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Main Question — MPL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #07071a; --card: rgba(255,255,255,.038); --border: rgba(255,255,255,.08);
+      --purple: #7c3aed; --purple-light: #a78bfa; --purple-glow: rgba(124,58,237,.25);
+      --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
+      --text: #e2e8f0; --muted: #64748b; --code-bg: rgba(0,0,0,.35);
+    }
+    body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Orbs */
+    .orb { position: fixed; border-radius: 50%; filter: blur(90px); opacity: .1; pointer-events: none; z-index: 0; }
+    .orb-1 { width:550px;height:550px; background:radial-gradient(#7c3aed,transparent 70%); top:-180px;left:-120px; }
+    .orb-2 { width:400px;height:400px; background:radial-gradient(#06b6d4,transparent 70%); bottom:-120px;right:-80px; }
+    .grid-bg { position:fixed;inset:0;z-index:0;
+      background-image:linear-gradient(rgba(255,255,255,.016) 1px,transparent 1px),
+                       linear-gradient(90deg,rgba(255,255,255,.016) 1px,transparent 1px);
+      background-size:52px 52px; }
+
+    /* Layout */
+    .page { position:relative;z-index:1; min-height:100vh; }
+    .wrap { max-width:860px; margin:0 auto; padding:0 24px; }
+
+    /* ── Login Screen ── */
+    #login-view {
+      display:flex; align-items:center; justify-content:center;
+      min-height:100vh; flex-direction:column; gap:0;
+    }
+    .login-box {
+      width:100%; max-width:420px;
+      background:var(--card); border:1px solid var(--border);
+      border-radius:24px; padding:44px 40px;
+      backdrop-filter:blur(24px);
+      box-shadow:0 32px 80px rgba(0,0,0,.4);
+      animation: fadeUp .5s ease both;
+    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+    .login-icon { font-size:2.5rem; text-align:center; margin-bottom:10px; }
+    .login-box h2 { text-align:center; font-size:1.5rem; font-weight:700; margin-bottom:6px; }
+    .login-sub { text-align:center; color:var(--muted); font-size:.875rem; margin-bottom:32px; }
+
+    label { display:block; font-size:.8rem; font-weight:600; color:var(--muted); margin-bottom:7px; letter-spacing:.06em; text-transform:uppercase; }
+    .inp-wrap { margin-bottom:18px; }
+    input[type=text], input[type=password] {
+      width:100%; padding:13px 16px;
+      background:rgba(255,255,255,.05); border:1px solid var(--border);
+      border-radius:12px; color:var(--text); font-family:inherit; font-size:.95rem;
+      outline:none; transition:border-color .2s, box-shadow .2s;
+    }
+    input:focus { border-color:var(--purple); box-shadow:0 0 0 3px var(--purple-glow); }
+
+    .btn-login {
+      width:100%; padding:14px; background:linear-gradient(135deg,#7c3aed,#6d28d9);
+      border:none; border-radius:12px; color:#fff; font-family:inherit;
+      font-size:.95rem; font-weight:700; cursor:pointer;
+      transition:opacity .2s, transform .1s, box-shadow .2s;
+      box-shadow:0 8px 24px rgba(124,58,237,.4);
+    }
+    .btn-login:hover { opacity:.9; box-shadow:0 12px 32px rgba(124,58,237,.5); }
+    .btn-login:active { transform:scale(.98); }
+    .btn-login:disabled { opacity:.5; cursor:not-allowed; }
+
+    .err-msg { margin-top:14px; padding:10px 14px; background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); border-radius:10px; font-size:.825rem; color:#fca5a5; display:none; }
+    .err-msg.show { display:block; }
+
+    .back-link { margin-top:20px; text-align:center; }
+    .back-link a { color:var(--muted); font-size:.825rem; text-decoration:none; transition:color .2s; }
+    .back-link a:hover { color:var(--purple-light); }
+
+    /* ── Question Screen ── */
+    #question-view { display:none; padding-bottom:60px; }
+
+    /* Top bar */
+    .topbar {
+      position:sticky; top:0; z-index:50;
+      background:rgba(7,7,26,.88); border-bottom:1px solid var(--border);
+      backdrop-filter:blur(20px); padding:0 24px;
+    }
+    .topbar-inner {
+      max-width:860px; margin:0 auto;
+      display:flex; align-items:center; justify-content:space-between;
+      height:64px; gap:16px;
+    }
+    .team-pill {
+      display:flex; align-items:center; gap:10px;
+      background:rgba(124,58,237,.1); border:1px solid rgba(124,58,237,.25);
+      padding:6px 16px; border-radius:100px;
+    }
+    .team-pill .avatar {
+      width:28px;height:28px;border-radius:50%;
+      background:linear-gradient(135deg,#7c3aed,#06b6d4);
+      display:flex;align-items:center;justify-content:center;
+      font-size:.7rem;font-weight:700;color:#fff;
+    }
+    .team-pill .tname { font-size:.875rem; font-weight:600; color:var(--purple-light); }
+
+    /* Big timer */
+    .timer-block {
+      display:flex;flex-direction:column;align-items:center;
+    }
+    #timer {
+      font-family:'JetBrains Mono',monospace;
+      font-size:clamp(1.6rem,4vw,2.2rem); font-weight:500;
+      letter-spacing:.06em; transition:color .5s;
+    }
+    .timer-green { color: #34d399; }
+    .timer-yellow { color: #fbbf24; }
+    .timer-red { color: #f87171; animation: timerPulse 1s ease-in-out infinite; }
+    @keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+    .timer-expired { color: #f87171; }
+
+    .timer-label { font-size:.65rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:2px; }
+
+    .extra-badge {
+      background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.25);
+      color:#6ee7b7; font-size:.72rem; font-weight:700;
+      padding:3px 10px; border-radius:100px; display:none;
+    }
+    .extra-badge.show { display:inline-block; }
+
+    .btn-logout {
+      background:transparent; border:1px solid var(--border);
+      color:var(--muted); font-family:inherit; font-size:.8rem;
+      padding:7px 14px; border-radius:8px; cursor:pointer;
+      transition:all .2s;
+    }
+    .btn-logout:hover { border-color:rgba(239,68,68,.4); color:#fca5a5; }
+
+    /* Question card */
+    .q-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:22px; overflow:hidden; margin-top:32px;
+      animation:fadeUp .5s ease both;
+    }
+    .q-header {
+      padding:28px 32px 22px;
+      border-bottom:1px solid var(--border);
+      background:rgba(124,58,237,.05);
+    }
+    .q-meta { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+    .badge { display:inline-block; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:3px 12px; border-radius:100px; }
+    .badge-main { color:var(--purple-light); background:rgba(124,58,237,.15); border:1px solid rgba(124,58,237,.25); }
+    .badge-medium { color:#fbbf24; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.2); }
+    .badge-hard   { color:#f87171; background:rgba(239,68,68,.1);  border:1px solid rgba(239,68,68,.2); }
+    .badge-easy   { color:#34d399; background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.2); }
+
+    .q-title { font-size:1.5rem; font-weight:700; color:#fff; }
+
+    /* Tabs */
+    .tabs { display:flex; border-bottom:1px solid var(--border); padding:0 32px; }
+    .tab {
+      padding:14px 18px; font-size:.85rem; font-weight:600;
+      color:var(--muted); border-bottom:2px solid transparent;
+      cursor:pointer; transition:color .2s, border-color .2s;
+      margin-bottom:-1px;
+    }
+    .tab.active { color:var(--purple-light); border-bottom-color:var(--purple); }
+    .tab:hover:not(.active) { color:var(--text); }
+
+    .tab-content { padding:28px 32px; display:none; }
+    .tab-content.active { display:block; animation:fadeUp .3s ease both; }
+
+    .desc-text {
+      font-size:.925rem; line-height:1.8; color:#cbd5e1;
+      white-space:pre-wrap;
+    }
+
+    /* Test cases */
+    .tc-list { display:flex; flex-direction:column; gap:14px; }
+    .tc-item {
+      background:var(--code-bg); border:1px solid var(--border);
+      border-radius:12px; padding:16px 20px;
+    }
+    .tc-label { font-size:.7rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+    .tc-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .tc-field { flex:1; min-width:180px; }
+    .tc-field-label { font-size:.68rem; color:var(--muted); margin-bottom:4px; font-weight:600; text-transform:uppercase; }
+    .tc-val {
+      font-family:'JetBrains Mono',monospace; font-size:.82rem; color:#a5f3fc;
+      background:rgba(0,0,0,.3); padding:8px 12px; border-radius:8px;
+      word-break:break-all; border:1px solid rgba(255,255,255,.06);
+    }
+    .tc-expected { color:#86efac; }
+
+    /* Points row */
+    .points-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 32px; border-top:1px solid var(--border);
+      background:rgba(0,0,0,.15);
+    }
+    .pts-item { display:flex; flex-direction:column; align-items:center; gap:3px; }
+    .pts-value { font-size:1.1rem; font-weight:700; color:#fff; }
+    .pts-label { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+
+    /* Loading skeleton */
+    .skeleton {
+      background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);
+      background-size:200% 100%;
+      animation:shimmer 1.5s infinite;
+      border-radius:8px; height:20px; margin-bottom:10px;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Expired overlay */
+    .expired-banner {
+      display:none; text-align:center; padding:24px;
+      background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25);
+      border-radius:16px; margin:24px 0; color:#fca5a5;
+    }
+    .expired-banner.show { display:block; animation:fadeUp .4s ease; }
+    .expired-banner h3 { font-size:1.2rem; margin-bottom:8px; }
+  </style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="grid-bg"></div>
+
+<div class="page">
+
+  <!-- ── LOGIN ── -->
+  <div id="login-view">
+    <div class="login-box">
+      <div class="login-icon">🎯</div>
+      <h2>Main Question</h2>
+      <p class="login-sub">Enter your team credentials to start your 90-minute countdown.</p>
+
+      <div class="inp-wrap">
+        <label for="team-name">Team Name</label>
+        <input type="text" id="team-name" placeholder="e.g. Team Alpha" autocomplete="off" />
+      </div>
+      <div class="inp-wrap">
+        <label for="passcode">Passcode</label>
+        <input type="password" id="passcode" placeholder="••••••••" />
+      </div>
+
+      <button class="btn-login" id="login-btn" onclick="doLogin()">Start Challenge →</button>
+      <div class="err-msg" id="err-msg"></div>
+      <div class="back-link"><a href="index.html">← Back to Hub</a></div>
+    </div>
+  </div>
+
+  <!-- ── QUESTION VIEW ── -->
+  <div id="question-view">
+    <!-- Sticky top bar -->
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="team-pill">
+          <div class="avatar" id="team-avatar">?</div>
+          <span class="tname" id="team-name-display">Team</span>
+        </div>
+        <div class="timer-block">
+          <div id="timer" class="timer-green">--:--:--</div>
+          <div class="timer-label">Time Remaining</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="extra-badge" id="extra-badge">+0s bonus</span>
+          <button class="btn-logout" onclick="doLogout()">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap" style="padding-top:32px">
+      <div class="expired-banner" id="expired-banner">
+        <h3>⏰ Time's Up!</h3>
+        <p>Your challenge window has ended. Great effort — check with the admin for results.</p>
+      </div>
+
+      <div id="q-loading">
+        <div class="skeleton" style="height:32px;width:60%;margin-bottom:16px"></div>
+        <div class="skeleton" style="height:16px"></div>
+        <div class="skeleton" style="height:16px;width:80%"></div>
+      </div>
+
+      <div class="q-card" id="q-card" style="display:none">
+        <div class="q-header">
+          <div class="q-meta">
+            <span class="badge badge-main">Main Event</span>
+            <span class="badge" id="diff-badge">Medium</span>
+          </div>
+          <div class="q-title" id="q-title">Loading question...</div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('description')">📄 Problem</div>
+          <div class="tab" onclick="switchTab('testcases')">🧪 Test Cases</div>
+        </div>
+
+        <div class="tab-content active" id="tab-description">
+          <pre class="desc-text" id="q-desc"></pre>
+        </div>
+        <div class="tab-content" id="tab-testcases">
+          <div class="tc-list" id="tc-list"></div>
+        </div>
+
+        <div class="points-bar">
+          <div class="pts-item">
+            <div class="pts-value" id="pts-display">1000</div>
+            <div class="pts-label">Team Points</div>
+          </div>
+          <div class="pts-item">
+            <div class="pts-value" id="qid-display">—</div>
+            <div class="pts-label">Question ID</div>
+          </div>
+          <div class="pts-item">
+            <div class="pts-value" id="extra-pts">0s</div>
+            <div class="pts-label">Bonus Time Earned</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API = 'http://localhost:8000';
+  let teamId = null, timerSecondsRemaining = 0, pollHandle = null;
+
+  // ── Login ──────────────────────────────────────────────────────────────────
+  async function doLogin() {
+    const name = document.getElementById('team-name').value.trim();
+    const pass = document.getElementById('passcode').value.trim();
+    const btn  = document.getElementById('login-btn');
+    const err  = document.getElementById('err-msg');
+    err.classList.remove('show');
+
+    if (!name || !pass) { showErr('Please fill in both fields.'); return; }
+
+    btn.disabled = true; btn.textContent = 'Logging in…';
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({name, passcode: pass})
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Login failed');
+
+      teamId = data.id;
+      sessionStorage.setItem('mpl_team', JSON.stringify(data));
+      showQuestionView(data);
+    } catch(e) {
+      showErr(e.message);
+      btn.disabled = false; btn.textContent = 'Start Challenge →';
+    }
+  }
+
+  function showErr(msg) {
+    const el = document.getElementById('err-msg');
+    el.textContent = '⚠️ ' + msg;
+    el.classList.add('show');
+  }
+
+  // allow Enter key in inputs
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('login-view').style.display !== 'none') doLogin();
+  });
+
+  // ── Show Question View ─────────────────────────────────────────────────────
+  async function showQuestionView(teamData) {
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('question-view').style.display = 'block';
+
+    const initials = teamData.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('team-avatar').textContent = initials;
+    document.getElementById('team-name-display').textContent = teamData.name;
+    document.getElementById('pts-display').textContent = teamData.points ?? 1000;
+
+    // Load question
+    if (teamData.main_question_id) {
+      await loadQuestion(teamData.main_question_id);
+    } else {
+      document.getElementById('q-loading').innerHTML =
+        '<p style="color:var(--muted);text-align:center;padding:40px 0">No main question assigned yet. Check with the admin.</p>';
+    }
+
+    // Start timer polling
+    await refreshTimer();
+    pollHandle = setInterval(refreshTimer, 5000);
+  }
+
+  // ── Question Loader ────────────────────────────────────────────────────────
+  async function loadQuestion(qid) {
+    try {
+      const res = await fetch(`${API}/api/questions/${qid}`);
+      const q = await res.json();
+      renderQuestion(q);
+    } catch(e) {
+      document.getElementById('q-loading').innerHTML =
+        `<p style="color:#fca5a5;padding:20px">Failed to load question: ${e.message}</p>`;
+    }
+  }
+
+  function renderQuestion(q) {
+    document.getElementById('q-loading').style.display = 'none';
+    const card = document.getElementById('q-card');
+    card.style.display = 'block';
+
+    document.getElementById('q-title').textContent = q.title;
+    document.getElementById('q-desc').textContent  = q.description;
+    document.getElementById('qid-display').textContent = '#' + q.id;
+
+    // Difficulty badge
+    const diff = (q.difficulty || 'MEDIUM').toUpperCase();
+    const db = document.getElementById('diff-badge');
+    db.textContent = diff.charAt(0) + diff.slice(1).toLowerCase();
+    db.className = 'badge badge-' + diff.toLowerCase();
+
+    // Test cases
+    const tcList = document.getElementById('tc-list');
+    try {
+      const tcs = typeof q.test_cases === 'string' ? JSON.parse(q.test_cases) : q.test_cases;
+      tcList.innerHTML = tcs.map((tc, i) => `
+        <div class="tc-item">
+          <div class="tc-label">Test Case ${tc.id ?? i+1}</div>
+          <div class="tc-row">
+            <div class="tc-field">
+              <div class="tc-field-label">Input</div>
+              <div class="tc-val">${escHtml(String(tc.input))}</div>
+            </div>
+            <div class="tc-field">
+              <div class="tc-field-label">Expected</div>
+              <div class="tc-val tc-expected">${escHtml(String(tc.expected))}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    } catch { tcList.innerHTML = `<div class="tc-val">${escHtml(q.test_cases)}</div>`; }
+  }
+
+  // ── Timer ──────────────────────────────────────────────────────────────────
+  async function refreshTimer() {
+    if (!teamId) return;
+    try {
+      const res  = await fetch(`${API}/api/teams/${teamId}/time-remaining`);
+      const data = await res.json();
+
+      if (!data.started) {
+        document.getElementById('timer').textContent = '1:30:00';
+        return;
+      }
+
+      const secs  = data.seconds_remaining;
+      const total = data.total_allowed_seconds;
+      const extra = data.extra_time_seconds;
+
+      timerSecondsRemaining = secs;
+      renderTimer(secs, total);
+
+      // Extra badge
+      const eb = document.getElementById('extra-badge');
+      const ep = document.getElementById('extra-pts');
+      if (extra > 0) {
+        const mins = Math.floor(extra/60), rem = extra%60;
+        const label = mins > 0 ? `+${mins}m ${rem>0?rem+'s':''}` : `+${rem}s`;
+        eb.textContent = label + ' bonus';
+        eb.classList.add('show');
+        ep.textContent = label;
+      }
+      document.getElementById('pts-display').textContent = data.points || 1000;
+
+      if (data.expired) {
+        document.getElementById('expired-banner').classList.add('show');
+        clearInterval(pollHandle);
+      }
+    } catch(e) { /* server unreachable */ }
+  }
+
+  function renderTimer(secs, total) {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    const el = document.getElementById('timer');
+    el.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+
+    const ratio = secs / (total || 5400);
+    el.className = secs <= 0 ? 'timer-expired'
+                 : ratio > 0.33 ? 'timer-green'
+                 : ratio > 0.1  ? 'timer-yellow'
+                 : 'timer-red';
+  }
+
+  function pad(n) { return String(n).padStart(2,'0'); }
+  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i) => {
+      t.classList.toggle('active', i === (name === 'description' ? 0 : 1));
+    });
+    document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  // ── Logout ─────────────────────────────────────────────────────────────────
+  function doLogout() {
+    clearInterval(pollHandle);
+    sessionStorage.removeItem('mpl_team');
+    teamId = null;
+    document.getElementById('question-view').style.display = 'none';
+    document.getElementById('login-view').style.display   = 'flex';
+    document.getElementById('team-name').value = '';
+    document.getElementById('passcode').value  = '';
+  }
+
+  // ── Auto-restore session ───────────────────────────────────────────────────
+  const saved = sessionStorage.getItem('mpl_team');
+  if (saved) {
+    const data = JSON.parse(saved);
+    teamId = data.id;
+    showQuestionView(data);
+  }
+</script>
+</body>
+</html>
