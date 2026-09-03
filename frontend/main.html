@@ -289,7 +289,11 @@
   /* ════════════════════════════════════════════════════════════════════
      Configuration
      ════════════════════════════════════════════════════════════════════ */
-  const API = 'http://localhost:8000';
+  // Same-origin by default (works when the frontend is served by the API, or
+  // from a real domain). On a local dev box the pages are usually opened from a
+  // separate static server, so point back at the API port instead.
+  const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const API = IS_LOCAL ? 'http://localhost:8000' : location.origin;
   const SESSION_KEY = 'mpl_team';
   const DRAFT_KEY = 'mpl_drafts';          // code survives tab + language switches
   const LANG_LABELS = { python:'Python 3', c:'C (GCC)', cpp:'C++ (G++)', java:'Java' };

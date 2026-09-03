@@ -1,6 +1,10 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+
 from app.core.config import settings
 from app.database import engine, Base
 from app.routes import auth, teams, admin, questions, main as main_round
@@ -50,7 +54,17 @@ def read_root():
         "message": "Event Platform API is running",
         "judge_backend": settings.JUDGE_BACKEND,
         "event_duration_seconds": settings.EVENT_DURATION_SECONDS,
+        "console": "/ui/main.html",
     }
+
+
+# Serve the frontend from the same origin as the API. Useful on event day
+# (one process, one URL, no CORS) and for sharing a preview link.
+_FRONTEND_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend"
+)
+if os.path.isdir(_FRONTEND_DIR):
+    app.mount("/ui", StaticFiles(directory=_FRONTEND_DIR, html=True), name="ui")
 
 
 @app.get("/health")
