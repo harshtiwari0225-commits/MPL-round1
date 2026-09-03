@@ -11,6 +11,13 @@ from app.schemas import TeamStatusResponse
 
 router = APIRouter()
 
+# NOTE: these two routes take a raw team_id and require no credential, which is
+# the pre-existing IDOR (any team can read any other team). They are kept
+# working because the challenge/boost pages still call them. The MAIN round does
+# not use them - it uses the token-authenticated /api/main/* routes instead.
+# TODO: migrate those pages to X-Team-Token, then lock these down.
+
+
 @router.get("/{team_id}/status")
 async def get_team_status(team_id: int, db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     # Fetch team

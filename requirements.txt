@@ -5,3 +5,6 @@ asyncpg
 pydantic
 pydantic-settings
 python-dotenv
+httpx
+requests
+aiosqlite
