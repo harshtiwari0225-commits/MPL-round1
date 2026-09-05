@@ -8,7 +8,7 @@ and bid are untouched, as agreed.
 
 ---
 
-## 1. Run it locally (no Docker needed)
+## 1. Run it locally Docker yet to be implemented)
 
 ```powershell
 python -m venv .venv
@@ -66,7 +66,7 @@ python seed.py
 
 ---
 
-## 2. Switching to real Judge0 (event day)
+## 2. Switching to real Judge0
 
 ```powershell
 docker compose -f docker-compose.judge0.yml up -d
