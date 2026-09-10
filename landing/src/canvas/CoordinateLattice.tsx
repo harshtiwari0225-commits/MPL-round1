@@ -88,6 +88,12 @@ export const CoordinateLattice: React.FC = () => {
         void main() {
           vColor = aColor;
 
+          if (uSp <= 0.005) {
+            vAlpha = 0.0;
+            gl_Position = vec4(0.0);
+            return;
+          }
+
           // Procedurally drawing into existence from one scalar as sp enters Act 1
           float drawProgress = smoothstep(0.01, 0.18, uSp);
           

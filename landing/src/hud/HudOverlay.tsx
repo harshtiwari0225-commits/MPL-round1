@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { scrollState, smoothstep } from '../state/scrollController';
+import { scrollState, smoothstep, clamp01 } from '../state/scrollController';
 import { LoginPortal } from './LoginPortal';
 import { Compass, Gauge, Activity, Lock } from 'lucide-react';
 
@@ -9,7 +9,6 @@ export const HudOverlay: React.FC = () => {
   const pRef = useRef<HTMLSpanElement>(null);
   const velRef = useRef<HTMLSpanElement>(null);
   const actBadgeRef = useRef<HTMLDivElement>(null);
-  const progressBarRef = useRef<HTMLDivElement>(null);
 
   // Act typography overlays
   const act1TextRef = useRef<HTMLDivElement>(null);
@@ -18,6 +17,22 @@ export const HudOverlay: React.FC = () => {
 
   // Act 4 Login Portal ref
   const loginPortalRef = useRef<HTMLDivElement>(null);
+
+  // 4-Act Bottom Timeline DOM refs
+  const seg1FillRef = useRef<HTMLDivElement>(null);
+  const seg2FillRef = useRef<HTMLDivElement>(null);
+  const seg3FillRef = useRef<HTMLDivElement>(null);
+  const seg4FillRef = useRef<HTMLDivElement>(null);
+
+  const seg1DotRef = useRef<HTMLSpanElement>(null);
+  const seg2DotRef = useRef<HTMLSpanElement>(null);
+  const seg3DotRef = useRef<HTMLSpanElement>(null);
+  const seg4DotRef = useRef<HTMLSpanElement>(null);
+
+  const seg1TextRef = useRef<HTMLSpanElement>(null);
+  const seg2TextRef = useRef<HTMLSpanElement>(null);
+  const seg3TextRef = useRef<HTMLSpanElement>(null);
+  const seg4TextRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     let animId: number;
@@ -32,9 +47,66 @@ export const HudOverlay: React.FC = () => {
       if (pRef.current) pRef.current.textContent = p.toFixed(3);
       if (velRef.current) velRef.current.textContent = `${(12.4 + vel * 2.8).toFixed(1)} km/s`;
 
-      // 2. Progress bar
-      if (progressBarRef.current) {
-        progressBarRef.current.style.width = `${p * 100}%`;
+      // 2. Exact Act Progress & Synchronization (0 -> 1 for each segment)
+      // Act 1: sp [0.00 -> 0.20]
+      const t1 = clamp01(sp / 0.20);
+      // Act 2: sp [0.20 -> 0.38]
+      const t2 = sp < 0.20 ? 0 : clamp01((sp - 0.20) / 0.18);
+      // Act 3: sp [0.38 -> 0.54]
+      const t3 = sp < 0.38 ? 0 : clamp01((sp - 0.38) / 0.16);
+      // Act 4: sp [0.54 -> 0.85]
+      const t4 = sp < 0.54 ? 0 : clamp01((sp - 0.54) / 0.31);
+
+      // Fill widths for individual act segment tracks
+      if (seg1FillRef.current) seg1FillRef.current.style.width = `${t1 * 100}%`;
+      if (seg2FillRef.current) seg2FillRef.current.style.width = `${t2 * 100}%`;
+      if (seg3FillRef.current) seg3FillRef.current.style.width = `${t3 * 100}%`;
+      if (seg4FillRef.current) seg4FillRef.current.style.width = `${t4 * 100}%`;
+
+      // Determine active act index (1 to 4)
+      const isAct1 = sp < 0.20;
+      const isAct2 = sp >= 0.20 && sp < 0.38;
+      const isAct3 = sp >= 0.38 && sp < 0.54;
+      const isAct4 = sp >= 0.54;
+
+      // Segment 1 UI State
+      if (seg1TextRef.current) {
+        seg1TextRef.current.style.color = isAct1 ? '#fde047' : t1 >= 1 ? '#94a3b8' : '#475569';
+        seg1TextRef.current.style.fontWeight = isAct1 ? '700' : '500';
+      }
+      if (seg1DotRef.current) {
+        seg1DotRef.current.style.background = isAct1 ? '#fde047' : t1 >= 1 ? '#06b6d4' : '#334155';
+        seg1DotRef.current.style.boxShadow = isAct1 ? '0 0 10px #fde047' : 'none';
+      }
+
+      // Segment 2 UI State
+      if (seg2TextRef.current) {
+        seg2TextRef.current.style.color = isAct2 ? '#06b6d4' : t2 >= 1 ? '#94a3b8' : '#475569';
+        seg2TextRef.current.style.fontWeight = isAct2 ? '700' : '500';
+      }
+      if (seg2DotRef.current) {
+        seg2DotRef.current.style.background = isAct2 ? '#06b6d4' : t2 >= 1 ? '#06b6d4' : '#334155';
+        seg2DotRef.current.style.boxShadow = isAct2 ? '0 0 10px #06b6d4' : 'none';
+      }
+
+      // Segment 3 UI State
+      if (seg3TextRef.current) {
+        seg3TextRef.current.style.color = isAct3 ? '#2dd4bf' : t3 >= 1 ? '#94a3b8' : '#475569';
+        seg3TextRef.current.style.fontWeight = isAct3 ? '700' : '500';
+      }
+      if (seg3DotRef.current) {
+        seg3DotRef.current.style.background = isAct3 ? '#2dd4bf' : t3 >= 1 ? '#2dd4bf' : '#334155';
+        seg3DotRef.current.style.boxShadow = isAct3 ? '0 0 10px #2dd4bf' : 'none';
+      }
+
+      // Segment 4 UI State
+      if (seg4TextRef.current) {
+        seg4TextRef.current.style.color = isAct4 ? '#f59e0b' : '#475569';
+        seg4TextRef.current.style.fontWeight = isAct4 ? '700' : '500';
+      }
+      if (seg4DotRef.current) {
+        seg4DotRef.current.style.background = isAct4 ? '#f59e0b' : '#334155';
+        seg4DotRef.current.style.boxShadow = isAct4 ? '0 0 10px #f59e0b' : 'none';
       }
 
       // 3. Dynamic Act Badge text
@@ -42,14 +114,14 @@ export const HudOverlay: React.FC = () => {
         let label = 'ACT I // THE SINGULARITY';
         let badgeColor = '#eab308';
 
-        if (sp >= 0.48) {
+        if (isAct4) {
           label = 'ACT IV // TEAM LOGIN';
+          badgeColor = '#f59e0b';
+        } else if (isAct3) {
+          label = 'ACT III // SLINGSHOT';
           badgeColor = '#2dd4bf';
-        } else if (sp > 0.32) {
-          label = 'ACT III // GRAVITY SLINGSHOT';
-          badgeColor = '#06b6d4';
-        } else if (sp > 0.16) {
-          label = 'ACT II // CELESTIAL TUNNEL';
+        } else if (isAct2) {
+          label = 'ACT II // ACCELERATION';
           badgeColor = '#06b6d4';
         }
 
@@ -97,10 +169,11 @@ export const HudOverlay: React.FC = () => {
     return () => cancelAnimationFrame(animId);
   }, []);
 
-  const scrollToLogin = () => {
+  const scrollToAct = (targetSp: number) => {
     const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const targetP = targetSp * 0.82;
     window.scrollTo({
-      top: scrollHeight * 0.70,
+      top: scrollHeight * targetP,
       behavior: 'smooth',
     });
   };
@@ -137,6 +210,7 @@ export const HudOverlay: React.FC = () => {
                 fontSize: '10px',
                 background: 'rgba(7, 9, 19, 0.7)',
                 color: '#eab308',
+                transition: 'border-color 0.2s, color 0.2s',
               }}
             >
               ACT I // THE SINGULARITY
@@ -189,7 +263,7 @@ export const HudOverlay: React.FC = () => {
           </div>
 
           <button
-            onClick={scrollToLogin}
+            onClick={() => scrollToAct(0.70)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -240,7 +314,7 @@ export const HudOverlay: React.FC = () => {
           }}
         >
           <span className="mono-label" style={{ color: '#06b6d4', letterSpacing: '0.25em', marginBottom: '8px' }}>
-            ACT II // COORDINATE VECTOR
+            ACT II // ACCELERATION
           </span>
           <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.8rem)', fontWeight: 700, color: '#f8fafc', textTransform: 'uppercase' }}>
             COSMIC ACCELERATION
@@ -263,8 +337,8 @@ export const HudOverlay: React.FC = () => {
             opacity: 0,
           }}
         >
-          <span className="mono-label" style={{ color: '#fde047', letterSpacing: '0.25em', marginBottom: '8px' }}>
-            ACT III // GRAVITATIONAL SLINGSHOT
+          <span className="mono-label" style={{ color: '#2dd4bf', letterSpacing: '0.25em', marginBottom: '8px' }}>
+            ACT III // SLINGSHOT
           </span>
           <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.8rem)', fontWeight: 700, color: '#f8fafc', textTransform: 'uppercase' }}>
             RODRIGUES VIEW BANK
@@ -278,32 +352,249 @@ export const HudOverlay: React.FC = () => {
       {/* ── ACT 4: TEAM LOGIN PAGE ── */}
       <LoginPortal portalRef={loginPortalRef} />
 
-      {/* ── BOTTOM GLOBAL PROGRESS BAR ── */}
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px', pointerEvents: 'none' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748b' }}>
-          <span className="mono-label" style={{ fontSize: '9px', color: '#eab308' }}>I: SINGULARITY</span>
-          <span className="mono-label" style={{ fontSize: '9px', color: '#06b6d4' }}>II: ACCELERATION</span>
-          <span className="mono-label" style={{ fontSize: '9px', color: '#06b6d4' }}>III: SLINGSHOT</span>
-          <span className="mono-label" style={{ fontSize: '9px', color: '#2dd4bf' }}>IV: TEAM LOGIN</span>
-        </div>
+      {/* ── BOTTOM SYNCHRONIZED 4-ACT TIMELINE & NAVIGATION ── */}
+      <div
+        style={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          pointerEvents: 'auto',
+          userSelect: 'none',
+        }}
+      >
         <div
           style={{
-            width: '100%',
-            height: '3px',
-            background: 'rgba(148, 163, 184, 0.12)',
-            borderRadius: '2px',
-            overflow: 'hidden',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '12px',
+            alignItems: 'center',
           }}
         >
-          <div
-            ref={progressBarRef}
+          {/* Segment 1: Act I Singularity */}
+          <button
+            type="button"
+            onClick={() => scrollToAct(0.0)}
             style={{
-              width: '0%',
-              height: '100%',
-              background: 'linear-gradient(90deg, #eab308, #06b6d4, #2dd4bf)',
-              boxShadow: '0 0 10px rgba(45, 212, 191, 0.5)',
+              background: 'transparent',
+              border: 'none',
+              padding: '0',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              textAlign: 'left',
             }}
-          />
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                ref={seg1DotRef}
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#fde047',
+                  boxShadow: '0 0 8px #fde047',
+                  display: 'inline-block',
+                  transition: 'background 0.2s, box-shadow 0.2s',
+                }}
+              />
+              <span
+                ref={seg1TextRef}
+                className="mono-label"
+                style={{ fontSize: '9px', color: '#fde047', letterSpacing: '0.08em', transition: 'color 0.2s' }}
+              >
+                I: SINGULARITY
+              </span>
+            </div>
+            <div
+              style={{
+                width: '100%',
+                height: '3px',
+                background: 'rgba(148, 163, 184, 0.15)',
+                borderRadius: '2px',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                ref={seg1FillRef}
+                style={{
+                  width: '0%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #eab308, #fde047)',
+                  boxShadow: '0 0 8px rgba(253, 224, 71, 0.6)',
+                }}
+              />
+            </div>
+          </button>
+
+          {/* Segment 2: Act II Acceleration */}
+          <button
+            type="button"
+            onClick={() => scrollToAct(0.25)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              padding: '0',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                ref={seg2DotRef}
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#334155',
+                  display: 'inline-block',
+                  transition: 'background 0.2s, box-shadow 0.2s',
+                }}
+              />
+              <span
+                ref={seg2TextRef}
+                className="mono-label"
+                style={{ fontSize: '9px', color: '#475569', letterSpacing: '0.08em', transition: 'color 0.2s' }}
+              >
+                II: ACCELERATION
+              </span>
+            </div>
+            <div
+              style={{
+                width: '100%',
+                height: '3px',
+                background: 'rgba(148, 163, 184, 0.15)',
+                borderRadius: '2px',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                ref={seg2FillRef}
+                style={{
+                  width: '0%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #06b6d4, #22d3ee)',
+                  boxShadow: '0 0 8px rgba(6, 182, 212, 0.6)',
+                }}
+              />
+            </div>
+          </button>
+
+          {/* Segment 3: Act III Slingshot */}
+          <button
+            type="button"
+            onClick={() => scrollToAct(0.42)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              padding: '0',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                ref={seg3DotRef}
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#334155',
+                  display: 'inline-block',
+                  transition: 'background 0.2s, box-shadow 0.2s',
+                }}
+              />
+              <span
+                ref={seg3TextRef}
+                className="mono-label"
+                style={{ fontSize: '9px', color: '#475569', letterSpacing: '0.08em', transition: 'color 0.2s' }}
+              >
+                III: SLINGSHOT
+              </span>
+            </div>
+            <div
+              style={{
+                width: '100%',
+                height: '3px',
+                background: 'rgba(148, 163, 184, 0.15)',
+                borderRadius: '2px',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                ref={seg3FillRef}
+                style={{
+                  width: '0%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #2dd4bf, #14b8a6)',
+                  boxShadow: '0 0 8px rgba(45, 212, 191, 0.6)',
+                }}
+              />
+            </div>
+          </button>
+
+          {/* Segment 4: Act IV Team Login */}
+          <button
+            type="button"
+            onClick={() => scrollToAct(0.70)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              padding: '0',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                ref={seg4DotRef}
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#334155',
+                  display: 'inline-block',
+                  transition: 'background 0.2s, box-shadow 0.2s',
+                }}
+              />
+              <span
+                ref={seg4TextRef}
+                className="mono-label"
+                style={{ fontSize: '9px', color: '#475569', letterSpacing: '0.08em', transition: 'color 0.2s' }}
+              >
+                IV: TEAM LOGIN
+              </span>
+            </div>
+            <div
+              style={{
+                width: '100%',
+                height: '3px',
+                background: 'rgba(148, 163, 184, 0.15)',
+                borderRadius: '2px',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                ref={seg4FillRef}
+                style={{
+                  width: '0%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #f59e0b, #eab308)',
+                  boxShadow: '0 0 8px rgba(245, 158, 11, 0.6)',
+                }}
+              />
+            </div>
+          </button>
         </div>
       </div>
     </div>
