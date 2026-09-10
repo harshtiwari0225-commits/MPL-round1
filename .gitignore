@@ -10,3 +10,6 @@ env/
 *.log
 .idea/workspace.xml
 .DS_Store
+node_modules/
+landing/node_modules/
+landing/dist/

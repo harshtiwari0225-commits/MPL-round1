@@ -1,0 +1,10 @@
+{
+  "name": "mpl-round1-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix landing run dev",
+    "build": "npm --prefix landing run build",
+    "preview": "npm --prefix landing run preview"
+  }
+}
