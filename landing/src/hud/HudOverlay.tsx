@@ -229,43 +229,8 @@ export const HudOverlay: React.FC = () => {
       {/* ── CENTER CINEMATIC ACT TEXT OVERLAYS ── */}
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', textAlign: 'center' }}>
         {/* ACT 1: The Singularity / Logo Synthesis */}
-        <div
-          ref={act1TextRef}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            paddingBottom: '55px',
-            opacity: 1,
-            transform: 'translateY(0px)',
-          }}
-        >
-          <span className="mono-label" style={{ color: '#fde047', letterSpacing: '0.25em', marginBottom: '6px' }}>
-            COSMIC HACKATHON ARENA
-          </span>
-          <h1
-            className="gold-glow-text"
-            style={{
-              fontSize: 'clamp(1.5rem, 3.2vw, 2.5rem)',
-              fontWeight: 800,
-              lineHeight: 1.1,
-              maxWidth: '850px',
-              textTransform: 'uppercase',
-            }}
-          >
-            MATH PREMIER LEAGUE
-          </h1>
-          <p style={{ color: '#94a3b8', maxWidth: '520px', marginTop: '6px', fontSize: '0.85rem', lineHeight: 1.4 }}>
-            40,000 Instanced Celestial Spheres // Fixed-frame deterministic scroll flight
-          </p>
-          <div className="scroll-hint" style={{ marginTop: '12px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#eab308' }} />
-            SCROLL TO ENGAGE FLIGHT CORRIDOR
-          </div>
-        </div>
+        {/* ACT 1: The Singularity / Logo Synthesis - Text overlay removed per user request */}
+        <div ref={act1TextRef} style={{ display: 'none' }} />
 
         {/* ACT 2: Cosmic Coordinate Acceleration */}
         <div
