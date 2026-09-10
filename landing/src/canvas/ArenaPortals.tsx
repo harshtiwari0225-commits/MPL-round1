@@ -256,13 +256,13 @@ export const ArenaPortals: React.FC = () => {
       swordMat.opacity = 0.85 * act4Weight;
     }
 
-    // Core Equation (Act 5 lock-in)
+    // Core Equation (Act 4/5 background halo)
     if (coreEquationRef.current) {
-      coreEquationRef.current.position.set(0, 7, 0);
+      coreEquationRef.current.position.set(0, 7, -15);
       coreEquationRef.current.rotation.x = sp * 1.2;
       coreEquationRef.current.rotation.y = sp * 2.4;
-      coreEquationRef.current.scale.setScalar(lerp(0.2, 1.0, act5Weight));
-      coreMat.opacity = 0.95 * act5Weight;
+      coreEquationRef.current.scale.setScalar(lerp(0.5, 1.2, act4Weight));
+      coreMat.opacity = 0.35 * act4Weight;
     }
 
     // Accretion Dust settling
