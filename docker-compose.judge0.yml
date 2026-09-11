@@ -1,0 +1,87 @@
+# Judge0 CE - the code execution sandbox.
+#
+#   docker compose -f docker-compose.judge0.yml up -d
+#   # wait ~60s for the DB to migrate, then:
+#   curl http://127.0.0.1:2358/languages
+#
+# Then set JUDGE_BACKEND=judge0 and JUDGE0_URL=http://127.0.0.1:2358 in .env
+# and check:  GET /api/admin/judge/health  (needs the admin-passcode header)
+#
+# NOTE: this is a trimmed-down starting point. Compare it with the official
+# compose file in the Judge0 repo before event day and keep the image at
+# v1.13.1 or newer (sandbox-escape fixes landed in 1.13.1).
+#
+# The API port is bound to 127.0.0.1 on purpose. Judge0 must NOT be reachable
+# from the venue network - only FastAPI talks to it.
+
+services:
+
+  judge0-server:
+    image: judge0/judge0:1.13.1
+    command: ["./scripts/server"]
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:2358:2358"
+    environment:
+      REDIS_HOST: judge0-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: judge0-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0
+      AUTHN_HEADER: X-Auth-Token
+      AUTHN_TOKEN: change-me-to-something-long
+      RAILS_ENV: production
+      MAX_QUEUE_SIZE: 200
+      ENABLE_WAIT_RESULT: "true"
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    volumes:
+      - judge0-log:/var/log/judge0
+
+  judge0-workers:
+    image: judge0/judge0:1.13.1
+    command: ["./scripts/workers"]
+    privileged: true
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: judge0-redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: judge0-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0
+      RAILS_ENV: production
+      # Tune for your box. 2 workers is plenty for ~10 teams.
+      WORKERS_COUNT: "2"
+      CPU_TIME_LIMIT: "5"
+      WALL_TIME_LIMIT: "10"
+      MEMORY_LIMIT: "256000"
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    volumes:
+      - judge0-log:/var/log/judge0
+
+  judge0-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0
+    volumes:
+      - judge0-db-data:/var/lib/postgresql/data
+
+  judge0-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+volumes:
+  judge0-db-data:
+  judge0-log:
