@@ -3,15 +3,15 @@
 Extracted verbatim from the old routes/main.py helpers so arena.py,
 judging.py and validation.py all read question JSON fields the same way.
 """
+
 from __future__ import annotations
 
 import json
-from typing import List, Optional
 
 from app.models import Question
 
 
-def allowed_languages(question: Question) -> Optional[List[str]]:
+def allowed_languages(question: Question) -> list[str] | None:
     if not question.allowed_languages:
         return None
     try:
@@ -21,7 +21,7 @@ def allowed_languages(question: Question) -> Optional[List[str]]:
         return None
 
 
-def starter_code_for(question: Question, language: str) -> Optional[str]:
+def starter_code_for(question: Question, language: str) -> str | None:
     if not question.starter_code:
         return None
     try:
@@ -31,7 +31,7 @@ def starter_code_for(question: Question, language: str) -> Optional[str]:
         return question.starter_code
 
 
-def starter_bundle(question: Question) -> Optional[str]:
+def starter_bundle(question: Question) -> str | None:
     """Per-language starter code as the team sees it: a JSON object string.
 
     One entry per allowed language (default: python), empty entries dropped,

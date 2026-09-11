@@ -5,34 +5,33 @@ POST /submissions/batch to run every test case in one request, then polls
 GET /submissions/batch (see polling.py) until all tokens leave the pending
 state.
 """
+
 from __future__ import annotations
 
 import base64
-from typing import Dict, List, Optional
 
 import httpx
 
 from app.core.config import settings
-from app.services.judge.base import JudgeJob, JudgeOutcome, STATUS_INTERNAL_ERROR
+from app.services.judge.base import STATUS_INTERNAL_ERROR, JudgeJob, JudgeOutcome
 from app.services.judge.polling import poll_outcomes
 
 
 class Judge0Client:
-
     def __init__(self):
         self.base_url = settings.JUDGE0_URL.rstrip("/")
-        self._language_ids: Dict[str, int] = {}
+        self._language_ids: dict[str, int] = {}
         self._languages_loaded = False
 
     # -- language resolution --------------------------------------------------
 
-    async def _headers(self) -> Dict[str, str]:
+    async def _headers(self) -> dict[str, str]:
         headers = {"Content-Type": "application/json"}
         if settings.JUDGE0_AUTH_TOKEN:
             headers["X-Auth-Token"] = settings.JUDGE0_AUTH_TOKEN
         return headers
 
-    async def ensure_languages(self) -> Dict[str, int]:
+    async def ensure_languages(self) -> dict[str, int]:
         """Resolve our language keys -> Judge0 ids by NAME.
 
         Language ids differ between Judge0 versions, so we never hard-code them
@@ -41,19 +40,15 @@ class Judge0Client:
         if self._languages_loaded:
             return self._language_ids
 
-        resolved: Dict[str, int] = {}
+        resolved: dict[str, int] = {}
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.get(
-                    f"{self.base_url}/languages", headers=await self._headers()
-                )
+                resp = await client.get(f"{self.base_url}/languages", headers=await self._headers())
                 resp.raise_for_status()
                 available = resp.json()
 
             for key, wanted in settings.LANGUAGE_NAMES.items():
-                match = next(
-                    (lang for lang in available if lang.get("name") == wanted), None
-                )
+                match = next((lang for lang in available if lang.get("name") == wanted), None)
                 if match is None:
                     # fall back to a looser prefix match, e.g. "Python (3"
                     prefix = wanted.split("(")[0].strip().lower()
@@ -78,11 +73,9 @@ class Judge0Client:
         self._languages_loaded = True
         return resolved
 
-    async def languages(self) -> List[Dict]:
+    async def languages(self) -> list[dict]:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(
-                f"{self.base_url}/languages", headers=await self._headers()
-            )
+            resp = await client.get(f"{self.base_url}/languages", headers=await self._headers())
             resp.raise_for_status()
             return resp.json()
 
@@ -96,7 +89,7 @@ class Judge0Client:
 
     # -- submission -----------------------------------------------------------
 
-    def _payload(self, job: JudgeJob, language_id: int) -> Dict:
+    def _payload(self, job: JudgeJob, language_id: int) -> dict:
         return {
             "language_id": language_id,
             "source_code": base64.b64encode(job.source_code.encode()).decode(),
@@ -110,7 +103,7 @@ class Judge0Client:
             "redirect_stderr_to_stdout": False,
         }
 
-    async def run_batch(self, jobs: List[JudgeJob]) -> List[JudgeOutcome]:
+    async def run_batch(self, jobs: list[JudgeJob]) -> list[JudgeOutcome]:
         if not jobs:
             return []
 
@@ -124,9 +117,9 @@ class Judge0Client:
                 payloads.append(self._payload(job, language_id))
 
         # Unsupported language -> synthetic outcome, don't call Judge0 for it.
-        tokens: List[Optional[str]] = []
-        batch: List[Dict] = []
-        index_map: List[int] = []
+        tokens: list[str | None] = []
+        batch: list[dict] = []
+        index_map: list[int] = []
         for i, payload in enumerate(payloads):
             if payload is None:
                 tokens.append(None)
@@ -148,7 +141,7 @@ class Judge0Client:
             for slot, item in zip(index_map, created):
                 tokens[slot] = item.get("token")
 
-        outcomes: List[JudgeOutcome] = []
+        outcomes: list[JudgeOutcome] = []
         for i, job in enumerate(jobs):
             if tokens[i] is None:
                 outcomes.append(
@@ -159,8 +152,6 @@ class Judge0Client:
                     )
                 )
             else:
-                outcomes.append(
-                    JudgeOutcome(status_id=1, status="In Queue", token=tokens[i])
-                )
+                outcomes.append(JudgeOutcome(status_id=1, status="In Queue", token=tokens[i]))
 
         return await poll_outcomes(outcomes, self.base_url, await self._headers())

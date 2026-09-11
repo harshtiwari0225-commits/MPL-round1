@@ -6,6 +6,7 @@ best score and points so the total stays consistent.
 
 Backs POST /api/admin/submissions/{id}/rejudge.
 """
+
 from __future__ import annotations
 
 from fastapi import HTTPException
@@ -14,8 +15,13 @@ from sqlalchemy.future import select
 
 from app.core.config import settings
 from app.models import (
-    Question, Submission, SubmissionResult, SubmissionVerdict, Team,
-    TeamQuestionState, TestCase,
+    Question,
+    Submission,
+    SubmissionResult,
+    SubmissionVerdict,
+    Team,
+    TeamQuestionState,
+    TestCase,
 )
 from app.schemas import RejudgeResponse
 from app.services import scoring
@@ -25,32 +31,44 @@ from app.services.results import build_result
 
 async def rejudge_submission(db: AsyncSession, submission_id: int) -> RejudgeResponse:
     submission = (
-        await db.execute(select(Submission).where(Submission.id == submission_id))
-    ).scalars().first()
+        (await db.execute(select(Submission).where(Submission.id == submission_id)))
+        .scalars()
+        .first()
+    )
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found")
     if not submission.scored:
         raise HTTPException(status_code=400, detail="Only scored submissions can be rejudged")
 
     question = (
-        await db.execute(select(Question).where(Question.id == submission.question_id))
-    ).scalars().first()
+        (await db.execute(select(Question).where(Question.id == submission.question_id)))
+        .scalars()
+        .first()
+    )
     state = (
-        await db.execute(
-            select(TeamQuestionState).where(
-                TeamQuestionState.team_id == submission.team_id,
-                TeamQuestionState.question_id == submission.question_id,
+        (
+            await db.execute(
+                select(TeamQuestionState).where(
+                    TeamQuestionState.team_id == submission.team_id,
+                    TeamQuestionState.question_id == submission.question_id,
+                )
             )
         )
-    ).scalars().first()
+        .scalars()
+        .first()
+    )
 
     cases = (
-        await db.execute(
-            select(TestCase)
-            .where(TestCase.question_id == question.id)
-            .order_by(TestCase.position, TestCase.id)
+        (
+            await db.execute(
+                select(TestCase)
+                .where(TestCase.question_id == question.id)
+                .order_by(TestCase.position, TestCase.id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     jobs = [
         JudgeJob(
@@ -79,10 +97,14 @@ async def rejudge_submission(db: AsyncSession, submission_id: int) -> RejudgeRes
     )
 
     old_results = (
-        await db.execute(
-            select(SubmissionResult).where(SubmissionResult.submission_id == submission_id)
+        (
+            await db.execute(
+                select(SubmissionResult).where(SubmissionResult.submission_id == submission_id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     for row in old_results:
         await db.delete(row)
 
@@ -94,12 +116,16 @@ async def rejudge_submission(db: AsyncSession, submission_id: int) -> RejudgeRes
     submission.score = new_score
     submission.tests_passed = passed
     submission.tests_total = total
-    submission.verdict = SubmissionVerdict.ERROR if any(
-        o.status_id == 13 for o in outcomes
-    ) else (
-        SubmissionVerdict.PASSED if passed == total and total
-        else SubmissionVerdict.PARTIAL if passed
-        else SubmissionVerdict.FAILED
+    submission.verdict = (
+        SubmissionVerdict.ERROR
+        if any(o.status_id == 13 for o in outcomes)
+        else (
+            SubmissionVerdict.PASSED
+            if passed == total and total
+            else SubmissionVerdict.PARTIAL
+            if passed
+            else SubmissionVerdict.FAILED
+        )
     )
 
     score_delta = 0
@@ -110,10 +136,14 @@ async def rejudge_submission(db: AsyncSession, submission_id: int) -> RejudgeRes
             score_delta = candidate - previous_best
             state.best_score = candidate
             team = (
-                await db.execute(
-                    select(Team).where(Team.id == submission.team_id).with_for_update()
+                (
+                    await db.execute(
+                        select(Team).where(Team.id == submission.team_id).with_for_update()
+                    )
                 )
-            ).scalars().first()
+                .scalars()
+                .first()
+            )
             if team:
                 team.points = (team.points or 0) + score_delta
 

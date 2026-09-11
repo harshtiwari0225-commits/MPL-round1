@@ -3,7 +3,6 @@
 The rejudge pipeline itself lives in app/services/rejudge.py so it shares
 result-building and scoring with the team submit path.
 """
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,8 +10,8 @@ from sqlalchemy.future import select
 
 from app.database import get_db
 from app.models import Submission, SubmissionResult
-from app.schemas import RejudgeResponse
 from app.routes.admin.deps import verify_admin
+from app.schemas import RejudgeResponse
 from app.services.rejudge import rejudge_submission
 
 router = APIRouter()
@@ -20,8 +19,8 @@ router = APIRouter()
 
 @router.get("/submissions")
 async def list_submissions(
-    team_id: Optional[int] = None,
-    question_id: Optional[int] = None,
+    team_id: int | None = None,
+    question_id: int | None = None,
     limit: int = Query(50, le=500),
     db: AsyncSession = Depends(get_db),
     _: None = Depends(verify_admin),
@@ -59,15 +58,21 @@ async def get_submission(
     _: None = Depends(verify_admin),
 ):
     submission = (
-        await db.execute(select(Submission).where(Submission.id == submission_id))
-    ).scalars().first()
+        (await db.execute(select(Submission).where(Submission.id == submission_id)))
+        .scalars()
+        .first()
+    )
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found")
     results = (
-        await db.execute(
-            select(SubmissionResult).where(SubmissionResult.submission_id == submission_id)
+        (
+            await db.execute(
+                select(SubmissionResult).where(SubmissionResult.submission_id == submission_id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return {
         "submission": {
             "id": submission.id,

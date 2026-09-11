@@ -1,5 +1,4 @@
 """Leaderboard (public) and judge health check (admin)."""
-from typing import List
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,33 +6,39 @@ from sqlalchemy.future import select
 
 from app.core.config import settings
 from app.database import get_db
-from app.models import Question, QuestionType, Team, TeamQuestionState, QuestionStateStatus
-from app.schemas import LeaderboardRow
+from app.models import Question, QuestionStateStatus, QuestionType, Team, TeamQuestionState
 from app.routes.admin.deps import verify_admin
+from app.schemas import LeaderboardRow
 from app.services.access import time_state
 from app.services.judge import get_judge
 
 router = APIRouter()
 
 
-@router.get("/leaderboard", response_model=List[LeaderboardRow])
+@router.get("/leaderboard", response_model=list[LeaderboardRow])
 async def leaderboard(db: AsyncSession = Depends(get_db)):
     """Public-ish board. MAIN score = sum of best score per question."""
     teams = (await db.execute(select(Team).order_by(Team.id))).scalars().all()
     main_questions = (
-        await db.execute(select(Question.id).where(Question.type == QuestionType.MAIN))
-    ).scalars().all()
+        (await db.execute(select(Question.id).where(Question.type == QuestionType.MAIN)))
+        .scalars()
+        .all()
+    )
 
     rows = []
     for team in teams:
         states = (
-            await db.execute(
-                select(TeamQuestionState).where(
-                    TeamQuestionState.team_id == team.id,
-                    TeamQuestionState.question_id.in_(main_questions or [-1]),
+            (
+                await db.execute(
+                    select(TeamQuestionState).where(
+                        TeamQuestionState.team_id == team.id,
+                        TeamQuestionState.question_id.in_(main_questions or [-1]),
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
 
         main_score = sum(s.best_score or 0 for s in states)
         solved = sum(1 for s in states if s.status == QuestionStateStatus.SOLVED)

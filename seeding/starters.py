@@ -20,10 +20,10 @@ DEBUG_STARTER = {
     "c": (
         "#include <stdio.h>\n"
         "int main(void) {\n"
-        "    int n; scanf(\"%d\", &n);\n"
+        '    int n; scanf("%d", &n);\n'
         "    int total = 0;\n"
         "    for (int i = 1; i < n; i++) total += i;\n"
-        "    printf(\"%d\\n\", total);\n"
+        '    printf("%d\\n", total);\n'
         "    return 0;\n"
         "}\n"
     ),
@@ -65,16 +65,16 @@ MATH_STARTER = {
         "t = float(input())\n"
         "\n"
         "# TODO: implement\n"
-        "print(\"0.00\")\n"
+        'print("0.00")\n'
     ),
     "c": (
         "#include <stdio.h>\n"
         "#include <math.h>\n"
         "int main(void) {\n"
         "    double p, r, t;\n"
-        "    scanf(\"%lf %lf %lf\", &p, &r, &t);\n"
+        '    scanf("%lf %lf %lf", &p, &r, &t);\n'
         "    /* TODO: compute A = p * pow(1 + r, t) */\n"
-        "    printf(\"%.2f\\n\", 0.0);\n"
+        '    printf("%.2f\\n", 0.0);\n'
         "    return 0;\n"
         "}\n"
     ),
@@ -100,7 +100,7 @@ MATH_STARTER = {
         "        double r = sc.nextDouble();\n"
         "        double t = sc.nextDouble();\n"
         "        // TODO: compute A = p * Math.pow(1 + r, t)\n"
-        "        System.out.printf(\"%.2f%n\", 0.0);\n"
+        '        System.out.printf("%.2f%n", 0.0);\n'
         "    }\n"
         "}\n"
     ),
@@ -120,17 +120,17 @@ LEETCODE_STARTER = {
         "target = int(input())\n"
         "\n"
         "# TODO: implement\n"
-        "print(\"0 1\")\n"
+        'print("0 1")\n'
     ),
     "c": (
         "#include <stdio.h>\n"
         "int main(void) {\n"
-        "    int n; scanf(\"%d\", &n);\n"
+        '    int n; scanf("%d", &n);\n'
         "    int a[1000];\n"
-        "    for (int i = 0; i < n; i++) scanf(\"%d\", &a[i]);\n"
-        "    int target; scanf(\"%d\", &target);\n"
+        '    for (int i = 0; i < n; i++) scanf("%d", &a[i]);\n'
+        '    int target; scanf("%d", &target);\n'
         "    /* TODO */\n"
-        "    printf(\"0 1\\n\");\n"
+        '    printf("0 1\\n");\n'
         "    return 0;\n"
         "}\n"
     ),
@@ -144,7 +144,7 @@ LEETCODE_STARTER = {
         "    for (int i = 0; i < n; i++) cin >> a[i];\n"
         "    int target; cin >> target;\n"
         "    // TODO\n"
-        "    cout << \"0 1\" << endl;\n"
+        '    cout << "0 1" << endl;\n'
         "    return 0;\n"
         "}\n"
     ),
@@ -158,7 +158,7 @@ LEETCODE_STARTER = {
         "        for (int i = 0; i < n; i++) a[i] = sc.nextInt();\n"
         "        int target = sc.nextInt();\n"
         "        // TODO\n"
-        "        System.out.println(\"0 1\");\n"
+        '        System.out.println("0 1");\n'
         "    }\n"
         "}\n"
     ),

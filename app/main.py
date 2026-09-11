@@ -1,3 +1,4 @@
+import contextlib
 import os
 
 from fastapi import FastAPI
@@ -5,13 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.core.config import settings
-from app.database import engine, Base
-from app.routes import auth, teams, admin, questions, main as main_round
-import contextlib
-
 # Import models so that Base.metadata is fully populated before create_all.
 from app import models  # noqa: F401
+from app.core.config import settings
+from app.database import Base, engine
+from app.routes import admin, auth, questions, teams
+from app.routes import main as main_round
 
 
 @contextlib.asynccontextmanager
