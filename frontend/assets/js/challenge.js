@@ -78,10 +78,19 @@ const API = 'http://localhost:8000';
     document.getElementById('locked-state').style.display = 'none';
     document.getElementById('active-state').style.display = 'block';
 
-    // Load question
+    // Load question and visible sample tests
     try {
-      const res = await fetch(`${API}/api/questions/${questionId}`);
-      const q   = await res.json();
+      const [qRes, testsRes] = await Promise.all([
+        fetch(`${API}/api/questions/${questionId}`),
+        fetch(`${API}/api/questions/${questionId}/sample-tests`)
+      ]);
+      const q = await qRes.json();
+      if (testsRes.ok) {
+        const tests = await testsRes.json();
+        if (Array.isArray(tests) && tests.length) {
+          q.test_cases = tests.map((t, i) => ({ id: i + 1, input: t.stdin, expected: t.expected_output }));
+        }
+      }
       renderQuestion(q);
     } catch(e) {
       document.getElementById('q-loading').innerHTML =

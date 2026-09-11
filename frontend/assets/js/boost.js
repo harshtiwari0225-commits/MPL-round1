@@ -76,10 +76,25 @@ const API = 'http://localhost:8000';
         return;
       }
 
-      // 2. Fetch each question
-      const questions = await Promise.all(boostIds.map(qid =>
-        fetch(`${API}/api/questions/${qid}`).then(r => r.json())
-      ));
+      // 2. Fetch each question and visible sample tests
+      const questions = await Promise.all(boostIds.map(async qid => {
+        try {
+          const [qRes, stRes] = await Promise.all([
+            fetch(`${API}/api/questions/${qid}`),
+            fetch(`${API}/api/questions/${qid}/sample-tests`)
+          ]);
+          const q = await qRes.json();
+          if (stRes.ok) {
+            const samples = await stRes.json();
+            if (Array.isArray(samples) && samples.length) {
+              q.test_cases = samples.map((s, i) => ({ id: i + 1, input: s.stdin, expected: s.expected_output }));
+            }
+          }
+          return q;
+        } catch (e) {
+          return { id: qid, title: `Question #${qid}`, description: 'Failed to load question details.', test_cases: [] };
+        }
+      }));
 
       renderBoosts(questions);
     } catch(e) {
