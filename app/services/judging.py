@@ -8,9 +8,8 @@ Scoring rules (confirmed with the organiser):
   * no negative marking, unlimited attempts
   * a team's score for a question is the BEST score across all attempts
 """
-from __future__ import annotations
 
-from typing import Optional
+from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -41,12 +40,16 @@ async def judge_submission(
     validation.enforce_cooldown(state, scored)
 
     cases = (
-        await db.execute(
-            select(TestCase)
-            .where(TestCase.question_id == question.id)
-            .order_by(TestCase.position, TestCase.id)
+        (
+            await db.execute(
+                select(TestCase)
+                .where(TestCase.question_id == question.id)
+                .order_by(TestCase.position, TestCase.id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     selected = validation.select_cases(cases, scored)
 
     mode = question.compare_mode or CompareMode.TRIM
@@ -77,7 +80,7 @@ async def judge_submission(
     await db.flush()
 
     judge = get_judge()
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
     try:
         outcomes = await judge.run_batch(jobs)

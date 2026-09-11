@@ -4,40 +4,61 @@ These power boost.html and challenge.html: the admin assigns a boost question
 or opens a challenge session, and manually marks it solved after reviewing
 the team's answer. MAIN questions are graded automatically instead.
 """
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.database import get_db
 from app.models import (
-    Team, Question, TeamQuestionState, ChallengeSession, QuestionType,
-    QuestionStateStatus, ChallengeStatus,
+    ChallengeSession,
+    ChallengeStatus,
+    Question,
+    QuestionStateStatus,
+    QuestionType,
+    Team,
+    TeamQuestionState,
 )
-from app.schemas import ChallengeCreate, AssignBoost, ReviewMarkSolved
 from app.routes.admin.deps import verify_admin
+from app.schemas import AssignBoost, ChallengeCreate, ReviewMarkSolved
 
 router = APIRouter()
 
 
 @router.post("/teams/{team_id}/assign-boost")
-async def assign_boost(team_id: int, boost: AssignBoost, db: AsyncSession = Depends(get_db), _: None = Depends(verify_admin)):
+async def assign_boost(
+    team_id: int,
+    boost: AssignBoost,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_admin),
+):
     team = (await db.execute(select(Team).where(Team.id == team_id))).scalars().first()
     if not team:
         raise HTTPException(status_code=404, detail="Team not found")
-    question = (await db.execute(select(Question).where(Question.id == boost.question_id))).scalars().first()
+    question = (
+        (await db.execute(select(Question).where(Question.id == boost.question_id)))
+        .scalars()
+        .first()
+    )
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
 
     existing = (
-        await db.execute(
-            select(TeamQuestionState).where(
-                TeamQuestionState.team_id == team_id,
-                TeamQuestionState.question_id == boost.question_id,
+        (
+            await db.execute(
+                select(TeamQuestionState).where(
+                    TeamQuestionState.team_id == team_id,
+                    TeamQuestionState.question_id == boost.question_id,
+                )
             )
         )
-    ).scalars().first()
+        .scalars()
+        .first()
+    )
     if existing:
-        raise HTTPException(status_code=400, detail="That question is already assigned to this team")
+        raise HTTPException(
+            status_code=400, detail="That question is already assigned to this team"
+        )
 
     db.add(
         TeamQuestionState(
@@ -51,7 +72,9 @@ async def assign_boost(team_id: int, boost: AssignBoost, db: AsyncSession = Depe
 
 
 @router.post("/challenge/create")
-async def create_challenge(challenge: ChallengeCreate, db: AsyncSession = Depends(get_db), _: None = Depends(verify_admin)):
+async def create_challenge(
+    challenge: ChallengeCreate, db: AsyncSession = Depends(get_db), _: None = Depends(verify_admin)
+):
     new_challenge = ChallengeSession(**challenge.model_dump())
     db.add(new_challenge)
     await db.commit()
@@ -59,7 +82,9 @@ async def create_challenge(challenge: ChallengeCreate, db: AsyncSession = Depend
 
 
 @router.post("/review/mark-solved")
-async def mark_solved(review: ReviewMarkSolved, db: AsyncSession = Depends(get_db), _: None = Depends(verify_admin)):
+async def mark_solved(
+    review: ReviewMarkSolved, db: AsyncSession = Depends(get_db), _: None = Depends(verify_admin)
+):
     q_result = await db.execute(select(Question).where(Question.id == review.question_id))
     question = q_result.scalars().first()
     if not question:
@@ -112,7 +137,7 @@ async def mark_solved(review: ReviewMarkSolved, db: AsyncSession = Depends(get_d
     if question.type == QuestionType.MAIN:
         return {
             "message": "MAIN questions are graded automatically by the judge. "
-                       "Use GET /api/admin/leaderboard to see scores."
+            "Use GET /api/admin/leaderboard to see scores."
         }
 
     return {"message": "No active assignment found for this question"}

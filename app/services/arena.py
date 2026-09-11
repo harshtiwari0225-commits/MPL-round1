@@ -3,9 +3,8 @@
 Backs GET /api/main/questions. Hidden tests are stripped here: only
 non-hidden TestCase rows are ever placed into the response.
 """
-from __future__ import annotations
 
-from typing import List
+from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -16,25 +15,33 @@ from app.services.progress import get_state
 from app.services.questions import starter_bundle
 
 
-async def team_question_views(db: AsyncSession, team: Team) -> List[MainQuestionPublic]:
+async def team_question_views(db: AsyncSession, team: Team) -> list[MainQuestionPublic]:
     """The team's MAIN questions. Hidden tests are stripped here."""
     questions = (
-        await db.execute(
-            select(Question)
-            .where(Question.type == QuestionType.MAIN)
-            .order_by(Question.order_index, Question.id)
+        (
+            await db.execute(
+                select(Question)
+                .where(Question.type == QuestionType.MAIN)
+                .order_by(Question.order_index, Question.id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
-    out: List[MainQuestionPublic] = []
+    out: list[MainQuestionPublic] = []
     for question in questions:
         cases = (
-            await db.execute(
-                select(TestCase)
-                .where(TestCase.question_id == question.id)
-                .order_by(TestCase.position, TestCase.id)
+            (
+                await db.execute(
+                    select(TestCase)
+                    .where(TestCase.question_id == question.id)
+                    .order_by(TestCase.position, TestCase.id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
 
         state = await get_state(db, team.id, question.id)
         await db.commit()

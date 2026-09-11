@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Enum as SQLEnum
 
 from app.database import Base
 from app.models.enums import ChallengeStatus

@@ -3,9 +3,8 @@
 Extracted verbatim from the old routes/main.py so the submit pipeline and
 the admin rejudge pipeline build results identically.
 """
-from __future__ import annotations
 
-from typing import List
+from __future__ import annotations
 
 from app.models import CompareMode, SubmissionResult, TestCase
 from app.services import scoring
@@ -49,9 +48,7 @@ def build_result(
     )
 
 
-def propagate_compile_error(
-    results: List[SubmissionResult], outcomes: List[JudgeOutcome]
-) -> None:
+def propagate_compile_error(results: list[SubmissionResult], outcomes: list[JudgeOutcome]) -> None:
     """A compilation error affects every test; surface it once."""
     compile_errors = [o for o in outcomes if o.status_id == 6]
     if compile_errors:

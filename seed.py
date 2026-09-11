@@ -11,6 +11,7 @@ Usage:
 Re-running is safe: existing teams/questions are skipped and test cases are
 replaced.
 """
+
 import sys
 
 import requests
@@ -25,12 +26,18 @@ def api_call(method, path, data=None, params=None):
     """Never explode on a non-JSON response (the old seeder did)."""
     try:
         r = requests.request(
-            method, f"{BASE_URL}{path}", json=data, params=params,
-            headers=ADMIN_HEADERS, timeout=30,
+            method,
+            f"{BASE_URL}{path}",
+            json=data,
+            params=params,
+            headers=ADMIN_HEADERS,
+            timeout=30,
         )
     except requests.exceptions.ConnectionError:
-        print(f"\nERROR: Cannot reach {BASE_URL}. Start the server with: "
-              "uvicorn app.main:app --reload")
+        print(
+            f"\nERROR: Cannot reach {BASE_URL}. Start the server with: "
+            "uvicorn app.main:app --reload"
+        )
         sys.exit(1)
 
     try:
@@ -67,8 +74,10 @@ def main():
             "POST", f"/api/admin/questions/{qid}/test-cases", cases, params={"replace": "true"}
         )
         status = "OK" if code == 200 else "FAIL"
-        print(f"  {status}   [{question['sub_type']:<9}] {question['title']} "
-              f"(id={qid}, {len(cases)} tests, {question['points']} pts)")
+        print(
+            f"  {status}   [{question['sub_type']:<9}] {question['title']} "
+            f"(id={qid}, {len(cases)} tests, {question['points']} pts)"
+        )
 
     print("\n" + "=" * 60)
     print("Done! Team credentials:")
