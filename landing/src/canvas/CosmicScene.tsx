@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import React, { useMemo } from 'react';
+import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CameraRig } from './CameraRig';
 import { EmblemBeadCloud } from './EmblemBeadCloud';
@@ -8,37 +8,6 @@ import { CelestialTunnel } from './CelestialTunnel';
 import { Trajectories } from './Trajectories';
 import { ArenaPortals } from './ArenaPortals';
 import { PostProcessing } from './PostProcessing';
-import { StarField } from './StarField';
-import { NebulaFog } from './NebulaFog';
-
-const CosmicBackground: React.FC = () => {
-  const { scene } = useThree();
-
-  useEffect(() => {
-    let active = true;
-    let bgTexture: THREE.Texture | null = null;
-    const loader = new THREE.TextureLoader();
-
-    loader.load('/cosmic_bg.jpg', (texture) => {
-      if (!active) {
-        texture.dispose();
-        return;
-      }
-      texture.colorSpace = THREE.SRGBColorSpace;
-      bgTexture = texture;
-      scene.background = texture;
-    });
-
-    return () => {
-      active = false;
-      if (bgTexture) {
-        bgTexture.dispose();
-      }
-    };
-  }, [scene]);
-
-  return null;
-};
 
 export const CosmicScene: React.FC = () => {
   // DPR clamped to 1.0 (mobile) and 1.5 (desktop)
@@ -65,41 +34,26 @@ export const CosmicScene: React.FC = () => {
           position: [0, 8, 26],
         }}
         onCreated={({ gl, scene }) => {
-          gl.setClearColor(new THREE.Color('#050810'));
+          // Deep cosmic obsidian/navy base (~228 deg)
+          gl.setClearColor(new THREE.Color('#070913'));
           gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.08;
+          gl.toneMappingExposure = 1.05;
 
-          scene.fog = new THREE.Fog('#050810', 25, 260);
+          // Cosmic depth fog: lower hemisphere dissolves into cosmic navy void
+          scene.fog = new THREE.Fog('#070913', 20, 240);
         }}
       >
-        {/* Procedural Starfield Background */}
-        <StarField />
-
-        {/* Soft Procedural Nebula Cloud Planes */}
-        <NebulaFog />
-
-        {/* Cosmic Background Texture */}
-        <CosmicBackground />
-
-        {/* Enhanced Lighting */}
+        {/* Stellar key light and ambient cosmic fill */}
         <ambientLight intensity={0.4} color="#1b2552" />
-        <hemisphereLight
-          args={['#1a1a3e', '#0a0a1a', 0.3]}
-        />
         <directionalLight
           position={[15, 25, 20]}
           intensity={1.2}
           color="#f8fafc"
         />
-        <directionalLight
-          position={[-12, -5, 10]}
-          intensity={0.25}
-          color="#7c3aed"
-        />
         <pointLight
           position={[0, 8, 5]}
-          intensity={2.2}
-          distance={40}
+          intensity={2.0}
+          distance={35}
           color="#eab308"
         />
 
@@ -121,7 +75,7 @@ export const CosmicScene: React.FC = () => {
         {/* Acts 4 & 5: Three Arena Portals and Tournament Core */}
         <ArenaPortals />
 
-        {/* Post-Processing Pipeline: UnrealBloom -> ChromaticAberration -> Vignette -> OutputPass -> Grain */}
+        {/* Post-Processing Pipeline: UnrealBloom -> Vignette -> OutputPass -> Grain */}
         <PostProcessing />
       </Canvas>
     </div>
