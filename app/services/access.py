@@ -4,15 +4,13 @@ Previously every team endpoint took a raw ``team_id`` from the URL with no
 credential at all, so any team could read any other team's state. Team routes
 now require the ``X-Team-Token`` header issued at login.
 """
+
 from __future__ import annotations
 
 import secrets
-from datetime import datetime, timezone
-from typing import Tuple
+from datetime import UTC, datetime
 
-from typing import Optional
-
-from fastapi import Depends, HTTPException, Header
+from fastapi import Depends, Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -22,7 +20,7 @@ from app.models import Team
 
 
 def now_naive_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def new_session_token() -> str:
@@ -30,21 +28,19 @@ def new_session_token() -> str:
 
 
 async def get_current_team(
-    x_team_token: Optional[str] = Header(None, alias="X-Team-Token"),
+    x_team_token: str | None = Header(None, alias="X-Team-Token"),
     db: AsyncSession = Depends(get_db),
 ) -> Team:
     if not x_team_token:
         raise HTTPException(status_code=401, detail="Missing X-Team-Token header")
-    result = await db.execute(
-        select(Team).where(Team.session_token == x_team_token)
-    )
+    result = await db.execute(select(Team).where(Team.session_token == x_team_token))
     team = result.scalars().first()
     if not team:
         raise HTTPException(status_code=401, detail="Invalid or missing team token")
     return team
 
 
-def time_state(team: Team) -> Tuple[bool, int, bool]:
+def time_state(team: Team) -> tuple[bool, int, bool]:
     """Return (started, seconds_remaining, expired) for a team."""
     if team.timer_start_time is None:
         return False, 0, False
@@ -58,9 +54,7 @@ def require_running(team: Team) -> None:
     """Reject submissions once the team's clock has run out."""
     started, remaining, expired = time_state(team)
     if not started:
-        raise HTTPException(
-            status_code=403, detail="Your clock has not started. Log in first."
-        )
+        raise HTTPException(status_code=403, detail="Your clock has not started. Log in first.")
     if expired:
         raise HTTPException(
             status_code=403,

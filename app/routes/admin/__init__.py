@@ -11,14 +11,15 @@ at /api/admin, exactly as before:
     leaderboard.py  standings, judge health
     legacy.py       CHALLENGE / TIME_BOOST endpoints (unchanged legacy flow)
 """
+
 from fastapi import APIRouter
 
-from app.routes.admin.teams import router as teams_router
-from app.routes.admin.questions import router as questions_router
-from app.routes.admin.testcases import router as testcases_router
-from app.routes.admin.submissions import router as submissions_router
 from app.routes.admin.leaderboard import router as leaderboard_router
 from app.routes.admin.legacy import router as legacy_router
+from app.routes.admin.questions import router as questions_router
+from app.routes.admin.submissions import router as submissions_router
+from app.routes.admin.teams import router as teams_router
+from app.routes.admin.testcases import router as testcases_router
 
 router = APIRouter()
 router.include_router(teams_router)

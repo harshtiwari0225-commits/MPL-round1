@@ -28,10 +28,10 @@ Each new package has an `__init__.py` that re-exports the old public names, so
 keeps working unchanged**:
 
 ```python
-from app.models import Team, Question, TestCase        # same as before
-from app.schemas import SubmissionOut, TeamLogin       # same as before
-from app.services.judge import JudgeJob, get_judge     # same as before
-from app.routes import admin                           # admin.router assembled in __init__
+from app.models import Team, Question, TestCase  # same as before
+from app.schemas import SubmissionOut, TeamLogin  # same as before
+from app.services.judge import JudgeJob, get_judge  # same as before
+from app.routes import admin  # admin.router assembled in __init__
 ```
 
 `app/main.py` was not touched: it still does `from app import models`
