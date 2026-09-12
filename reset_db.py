@@ -6,13 +6,12 @@
 
 WARNING: this deletes all teams, questions, submissions and scores.
 """
-
 import asyncio
 import sys
 
-from app import models  # noqa: F401  (registers the tables)
 from app.core.config import settings
-from app.database import Base, engine
+from app.database import engine, Base
+from app import models  # noqa: F401  (registers the tables)
 
 
 async def main():

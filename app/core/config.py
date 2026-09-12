@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from typing import Dict
 
 
 class Settings(BaseSettings):
@@ -16,7 +17,7 @@ class Settings(BaseSettings):
     JUDGE_BACKEND: str = "mock"
 
     JUDGE0_URL: str = "http://judge0:2358"
-    JUDGE0_AUTH_TOKEN: str = ""  # X-Auth-Token header, set even on internal network
+    JUDGE0_AUTH_TOKEN: str = ""          # X-Auth-Token header, set even on internal network
     JUDGE0_TIMEOUT_SECONDS: float = 30.0  # hard cap for one full batch of test cases
     JUDGE0_POLL_INTERVAL: float = 0.4
 
@@ -25,23 +26,23 @@ class Settings(BaseSettings):
     MOCK_EXECUTE_PYTHON: bool = True
 
     # ── Limits / guardrails ──────────────────────────────────────────────────
-    DEFAULT_CPU_TIME_LIMIT: float = 5.0  # seconds per test case
+    DEFAULT_CPU_TIME_LIMIT: float = 5.0        # seconds per test case
     DEFAULT_WALL_TIME_LIMIT: float = 10.0
     DEFAULT_MEMORY_LIMIT_KB: int = 256_000
     MAX_SOURCE_BYTES: int = 64_000
-    SUBMIT_COOLDOWN_SECONDS: int = 5  # protects the judge queue, NOT an attempt limit
+    SUBMIT_COOLDOWN_SECONDS: int = 5           # protects the judge queue, NOT an attempt limit
 
     # ── Languages ────────────────────────────────────────────────────────────
     # Our key -> the Judge0 language name we look for in GET /languages.
     # Language IDs differ between Judge0 versions, so we resolve by NAME at
     # startup and only fall back to these hard-coded IDs if that fails.
-    LANGUAGE_NAMES: dict[str, str] = {
+    LANGUAGE_NAMES: Dict[str, str] = {
         "python": "Python (3.8.1)",
         "c": "C (GCC 9.2.0)",
         "cpp": "C++ (GCC 9.2.0)",
         "java": "Java (OpenJDK 13.0.1)",
     }
-    FALLBACK_LANGUAGE_IDS: dict[str, int] = {
+    FALLBACK_LANGUAGE_IDS: Dict[str, int] = {
         "python": 71,
         "c": 50,
         "cpp": 54,

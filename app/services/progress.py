@@ -3,13 +3,12 @@
 Extracted from the MAIN-round routes so run/submit and any future arena
 share one implementation of "best score wins, points move by the delta only".
 """
-
 from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.models import QuestionStateStatus, Submission, Team, TeamQuestionState
+from app.models import Submission, Team, TeamQuestionState, QuestionStateStatus
 from app.services.access import now_naive_utc
 
 
@@ -44,10 +43,8 @@ async def apply_score(
     """Best-score-wins accounting for a scored submission. Returns score_delta."""
     # Lock the team row so concurrent submits cannot lose an update.
     locked = (
-        (await db.execute(select(Team).where(Team.id == team.id).with_for_update()))
-        .scalars()
-        .first()
-    )
+        await db.execute(select(Team).where(Team.id == team.id).with_for_update())
+    ).scalars().first()
 
     score_delta = 0
     previous_best = state.best_score or 0

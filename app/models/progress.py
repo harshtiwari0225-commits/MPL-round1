@@ -1,12 +1,5 @@
 from sqlalchemy import (
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    UniqueConstraint,
-)
-from sqlalchemy import (
-    Enum as SQLEnum,
+    Column, Integer, DateTime, ForeignKey, Enum as SQLEnum, UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 

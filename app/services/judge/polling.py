@@ -4,27 +4,27 @@ After POST /submissions/batch returns tokens, we poll
 GET /submissions/batch?tokens=... until every token leaves the pending
 state or the hard deadline (JUDGE0_TIMEOUT_SECONDS) passes.
 """
-
 from __future__ import annotations
 
 import asyncio
 import base64
+from typing import Dict, List, Optional
 
 import httpx
 
 from app.core.config import settings
 from app.services.judge.base import (
+    JudgeOutcome,
     PENDING_STATUS_IDS,
     STATUS_INTERNAL_ERROR,
-    JudgeOutcome,
 )
 
 
 async def poll_outcomes(
-    outcomes: list[JudgeOutcome],
+    outcomes: List[JudgeOutcome],
     base_url: str,
-    headers: dict[str, str],
-) -> list[JudgeOutcome]:
+    headers: Dict[str, str],
+) -> List[JudgeOutcome]:
     deadline = asyncio.get_event_loop().time() + settings.JUDGE0_TIMEOUT_SECONDS
     pending = [o for o in outcomes if o.is_pending]
 
@@ -74,7 +74,7 @@ async def poll_outcomes(
     return outcomes
 
 
-def _b64decode(value: str | None) -> str | None:
+def _b64decode(value: Optional[str]) -> Optional[str]:
     if value is None:
         return None
     try:
@@ -83,7 +83,7 @@ def _b64decode(value: str | None) -> str | None:
         return value
 
 
-def _to_float(value) -> float | None:
+def _to_float(value) -> Optional[float]:
     try:
         return float(value)
     except (TypeError, ValueError):

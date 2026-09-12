@@ -1,13 +1,10 @@
 """Pydantic models for questions and test cases."""
-
 from pydantic import BaseModel, ConfigDict
+from typing import Optional, List
 
 from app.models import (
-    CompareMode,
-    MainSubType,
-    QuestionDifficulty,
-    QuestionStateStatus,
-    QuestionType,
+    QuestionType, QuestionDifficulty, QuestionStateStatus,
+    MainSubType, CompareMode,
 )
 
 
@@ -16,16 +13,16 @@ class QuestionBase(BaseModel):
     description: str
     test_cases: str = "[]"
     type: QuestionType = QuestionType.MAIN
-    difficulty: QuestionDifficulty | None = None
+    difficulty: Optional[QuestionDifficulty] = None
     reward_value: int = 0
-    sub_type: MainSubType | None = None
-    starter_code: str | None = None
-    allowed_languages: str | None = None
+    sub_type: Optional[MainSubType] = None
+    starter_code: Optional[str] = None
+    allowed_languages: Optional[str] = None
     compare_mode: CompareMode = CompareMode.TRIM
     points: int = 0
-    cpu_time_limit: float | None = None
-    wall_time_limit: float | None = None
-    memory_limit_kb: int | None = None
+    cpu_time_limit: Optional[float] = None
+    wall_time_limit: Optional[float] = None
+    memory_limit_kb: Optional[int] = None
     order_index: int = 0
 
 
@@ -52,7 +49,6 @@ class TestCaseCreate(TestCaseBase):
 
 class TestCaseAdmin(TestCaseBase):
     """Admin only. Includes hidden tests."""
-
     id: int
     question_id: int
     model_config = ConfigDict(from_attributes=True)
@@ -60,7 +56,6 @@ class TestCaseAdmin(TestCaseBase):
 
 class TestCasePublic(BaseModel):
     """What a team may see. Hidden tests are never included."""
-
     id: int
     stdin: str = ""
     expected_output: str = ""
@@ -70,18 +65,17 @@ class TestCasePublic(BaseModel):
 
 class MainQuestionPublic(BaseModel):
     """A MAIN question as the team sees it: no hidden tests, no correct flags."""
-
     id: int
     title: str
     description: str
-    sub_type: MainSubType | None = None
-    difficulty: QuestionDifficulty | None = None
+    sub_type: Optional[MainSubType] = None
+    difficulty: Optional[QuestionDifficulty] = None
     points: int = 0
     compare_mode: CompareMode = CompareMode.TRIM
-    starter_code: str | None = None
-    allowed_languages: str | None = None
+    starter_code: Optional[str] = None
+    allowed_languages: Optional[str] = None
     order_index: int = 0
-    visible_tests: list[TestCasePublic] = []
+    visible_tests: List[TestCasePublic] = []
     attempts: int = 0
     best_score: int = 0
     status: QuestionStateStatus = QuestionStateStatus.ASSIGNED

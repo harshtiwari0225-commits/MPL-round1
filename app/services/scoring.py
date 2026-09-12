@@ -5,12 +5,11 @@ prints ``0.30000000000000004`` instead of ``0.3``. So we treat Judge0's status
 as authoritative for *errors* (compile / TLE / runtime), and use our own
 comparator to decide *correctness*.
 """
-
 from __future__ import annotations
 
 import math
 import re
-from collections.abc import Sequence
+from typing import List, Optional, Sequence, Tuple
 
 from app.models import CompareMode, SubmissionResult, TestCase
 
@@ -19,7 +18,6 @@ _FLOAT_RE = re.compile(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?")
 
 # ── normalisation ────────────────────────────────────────────────────────────
 
-
 def _strip_trailing(text: str) -> str:
     lines = [line.rstrip() for line in text.replace("\r\n", "\n").split("\n")]
     while lines and lines[-1] == "":
@@ -27,7 +25,7 @@ def _strip_trailing(text: str) -> str:
     return "\n".join(lines)
 
 
-def normalise(text: str | None, mode: CompareMode) -> str:
+def normalise(text: Optional[str], mode: CompareMode) -> str:
     if text is None:
         return ""
     if mode == CompareMode.EXACT:
@@ -63,7 +61,7 @@ def _float_compare(actual: str, expected: str, rel_tol: float = 1e-6) -> bool:
     return True
 
 
-def outputs_match(actual: str | None, expected: str | None, mode: CompareMode) -> bool:
+def outputs_match(actual: Optional[str], expected: Optional[str], mode: CompareMode) -> bool:
     if mode == CompareMode.FLOAT:
         if _float_compare(actual or "", expected or ""):
             return True
@@ -73,10 +71,9 @@ def outputs_match(actual: str | None, expected: str | None, mode: CompareMode) -
 
 # ── scoring ──────────────────────────────────────────────────────────────────
 
-
 def score_submission(
-    points: int, results: list[SubmissionResult], cases: list[TestCase]
-) -> tuple[int, int, int]:
+    points: int, results: List[SubmissionResult], cases: List[TestCase]
+) -> Tuple[int, int, int]:
     """Weighted partial credit for one submission.
 
     The POINTS come from the hidden pool only (visible tests are practice),
@@ -146,8 +143,7 @@ def verdict_for(passed: int, total: int, judge_error: bool) -> str:
 
 # ── what the team is allowed to see ──────────────────────────────────────────
 
-
-def public_results(results: Sequence, include_hidden_io: bool = False) -> list[dict]:
+def public_results(results: Sequence, include_hidden_io: bool = False) -> List[dict]:
     """Strip hidden test inputs/outputs before a response leaves the server."""
     out = []
     for r in results:

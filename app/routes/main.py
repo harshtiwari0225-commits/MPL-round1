@@ -10,8 +10,9 @@ The pipelines live in app/services: arena.py (question views), judging.py
 (run/submit), validation.py (guards), progress.py (best-score accounting),
 results.py (outcome mapping). Scoring rules are documented in judging.py.
 """
-
 from __future__ import annotations
+
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,8 +31,7 @@ router = APIRouter()
 
 # ── endpoints ────────────────────────────────────────────────────────────────
 
-
-@router.get("/questions", response_model=list[MainQuestionPublic])
+@router.get("/questions", response_model=List[MainQuestionPublic])
 async def list_main_questions(
     team: Team = Depends(get_current_team),
     db: AsyncSession = Depends(get_db),
@@ -62,7 +62,7 @@ async def submit_code(
 
 @router.get("/submissions")
 async def my_submissions(
-    question_id: int | None = None,
+    question_id: Optional[int] = None,
     team: Team = Depends(get_current_team),
     db: AsyncSession = Depends(get_db),
 ):

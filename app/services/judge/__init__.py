@@ -18,20 +18,19 @@ Submodules:
 This package re-exports the public names, so existing imports such as
 ``from app.services.judge import JudgeJob, get_judge`` keep working.
 """
-
 from app.core.config import settings
 from app.services.judge.base import (
-    PENDING_STATUS_IDS,
-    STATUS_ACCEPTED,
-    STATUS_COMPILATION_ERROR,
-    STATUS_INTERNAL_ERROR,
-    STATUS_TIME_LIMIT,
-    STATUS_WRONG_ANSWER,
     JudgeJob,
     JudgeOutcome,
+    PENDING_STATUS_IDS,
+    STATUS_ACCEPTED,
+    STATUS_WRONG_ANSWER,
+    STATUS_TIME_LIMIT,
+    STATUS_COMPILATION_ERROR,
+    STATUS_INTERNAL_ERROR,
 )
-from app.services.judge.client import Judge0Client
 from app.services.judge.mock import MockJudge
+from app.services.judge.client import Judge0Client
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Factory
@@ -57,16 +56,9 @@ def reset_judge() -> None:
 
 
 __all__ = [
-    "JudgeJob",
-    "JudgeOutcome",
-    "PENDING_STATUS_IDS",
-    "STATUS_ACCEPTED",
-    "STATUS_WRONG_ANSWER",
-    "STATUS_TIME_LIMIT",
-    "STATUS_COMPILATION_ERROR",
-    "STATUS_INTERNAL_ERROR",
-    "MockJudge",
-    "Judge0Client",
-    "get_judge",
-    "reset_judge",
+    "JudgeJob", "JudgeOutcome",
+    "PENDING_STATUS_IDS", "STATUS_ACCEPTED", "STATUS_WRONG_ANSWER",
+    "STATUS_TIME_LIMIT", "STATUS_COMPILATION_ERROR", "STATUS_INTERNAL_ERROR",
+    "MockJudge", "Judge0Client",
+    "get_judge", "reset_judge",
 ]

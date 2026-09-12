@@ -1,22 +1,19 @@
 """Admin team management: create, list, add-time."""
-
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError
 
 from app.database import get_db
 from app.models import Team
+from app.schemas import TeamCreate, AddTimeRequest
 from app.routes.admin.deps import verify_admin
-from app.schemas import AddTimeRequest, TeamCreate
 
 router = APIRouter()
 
 
 @router.post("/teams")
-async def create_team(
-    team: TeamCreate, db: AsyncSession = Depends(get_db), _: None = Depends(verify_admin)
-):
+async def create_team(team: TeamCreate, db: AsyncSession = Depends(get_db), _: None = Depends(verify_admin)):
     existing = (await db.execute(select(Team).where(Team.name == team.name))).scalars().first()
     if existing:
         raise HTTPException(status_code=400, detail="A team with that name already exists")
@@ -70,8 +67,7 @@ async def add_time(
     for team in teams:
         team.extra_time_seconds = (team.extra_time_seconds or 0) + payload.seconds
         db.add(team)
-        updated.append(
-            {"id": team.id, "name": team.name, "extra_time_seconds": team.extra_time_seconds}
-        )
+        updated.append({"id": team.id, "name": team.name,
+                        "extra_time_seconds": team.extra_time_seconds})
     await db.commit()
     return {"message": f"Added {payload.seconds}s", "teams": updated}
