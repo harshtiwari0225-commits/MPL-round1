@@ -6,8 +6,8 @@ import { scrollState, smoothstep } from '../state/scrollController';
 // Accurate sRGB-to-linear conversion for ACES Filmic tone mapping
 const toLinearColor = (r: number, g: number, b: number): [number, number, number] => {
   return [
-    Math.pow(r / 255, 2.2),
-    Math.pow(g / 255, 2.2),
+    Math.pow(r / 255, 2.2) * 1.08,
+    Math.pow(g / 255, 2.2) * 1.04,
     Math.pow(b / 255, 2.2),
   ];
 };
@@ -183,13 +183,17 @@ const createBeadShaderMaterial = () => {
       uniform float uSp;
       uniform vec2 uCursor;
       uniform float uReducedMotion;
+      uniform float uTime;
 
       varying vec3 vColor;
       varying vec3 vNormal;
       varying vec3 vViewPosition;
+      varying float vAlpha;
 
       void main() {
         vColor = aColor;
+        vAlpha = 1.0;
+        vAlpha *= 0.88 + 0.12 * sin(uTime * 2.0 + aRandom.x * 12.566);
 
         // Act 1 Singularity: Beads form the celestial aura of the logo.
         // As the user scrolls toward Act 2 (sp 0.12 -> 0.30), beads accelerate and disperse into the tunnel
@@ -242,6 +246,7 @@ const createBeadShaderMaterial = () => {
       varying vec3 vColor;
       varying vec3 vNormal;
       varying vec3 vViewPosition;
+      varying float vAlpha;
       uniform float uSp;
 
       void main() {
@@ -266,6 +271,7 @@ const createBeadShaderMaterial = () => {
 
         // Soft celestial blend at rest so crisp plate is crystal clear; full opacity when dispersing
         float alpha = mix(0.35, 1.0, smoothstep(0.02, 0.14, uSp));
+        alpha *= vAlpha;
 
         gl_FragColor = vec4(finalColor, alpha);
       }
@@ -416,7 +422,7 @@ export const EmblemBeadCloud: React.FC = () => {
     };
   }, [instancedGeo, COUNT]);
 
-  useFrame(() => {
+  useFrame((state) => {
     const sp = scrollState.sp;
     const tiltFactor = scrollState.reducedMotion ? 0.0 : 1.0;
     const tiltX = scrollState.cursor.y * 0.18 * tiltFactor;
@@ -443,7 +449,7 @@ export const EmblemBeadCloud: React.FC = () => {
       auraRef.current.rotation.set(tiltX, rotY, 0);
 
       const auraAlpha = 1.0 - smoothstep(0.03, 0.14, sp);
-      auraMat.uniforms.uOpacity.value = auraAlpha * 0.6;
+      auraMat.uniforms.uOpacity.value = auraAlpha * 0.75;
       auraRef.current.visible = auraAlpha > 0.005;
     }
 
@@ -451,13 +457,14 @@ export const EmblemBeadCloud: React.FC = () => {
     shaderMat.uniforms.uSp.value = sp;
     shaderMat.uniforms.uCursor.value.set(scrollState.cursor.x, scrollState.cursor.y);
     shaderMat.uniforms.uReducedMotion.value = scrollState.reducedMotion ? 1.0 : 0.0;
+    shaderMat.uniforms.uTime.value = state.clock.getElapsedTime();
   });
 
   return (
     <group>
       {/* 1. Soft Celestial Aura Halo */}
       <mesh ref={auraRef} material={auraMat} frustumCulled={false}>
-        <planeGeometry args={[18.0, 18.0]} />
+        <planeGeometry args={[22.0, 22.0]} />
       </mesh>
 
       {/* 2. Crystalline High-Res Textured Emblem Plate (14.70 x 14.30 units) */}

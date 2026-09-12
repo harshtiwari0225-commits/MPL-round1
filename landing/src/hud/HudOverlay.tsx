@@ -33,6 +33,7 @@ export const HudOverlay: React.FC = () => {
   const seg2TextRef = useRef<HTMLSpanElement>(null);
   const seg3TextRef = useRef<HTMLSpanElement>(null);
   const seg4TextRef = useRef<HTMLSpanElement>(null);
+  const scrollIndicatorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let animId: number;
@@ -142,6 +143,7 @@ export const HudOverlay: React.FC = () => {
         const a2Alpha = a2In * a2Out;
         act2TextRef.current.style.opacity = `${a2Alpha}`;
         act2TextRef.current.style.transform = `translateY(${(1 - a2In) * 30 - smoothstep(0.30, 0.38, sp) * 30}px)`;
+        act2TextRef.current.style.textShadow = `0 0 40px rgba(6, 182, 212, ${a2Alpha * 0.5})`;
       }
 
       // 6. Act 3 Typography Overlay (sp 0.34 -> 0.52)
@@ -151,6 +153,7 @@ export const HudOverlay: React.FC = () => {
         const a3Alpha = a3In * a3Out;
         act3TextRef.current.style.opacity = `${a3Alpha}`;
         act3TextRef.current.style.transform = `translateY(${(1 - a3In) * 30 - smoothstep(0.46, 0.54, sp) * 30}px)`;
+        act3TextRef.current.style.textShadow = `0 0 40px rgba(45, 212, 191, ${a3Alpha * 0.5})`;
       }
 
       // 7. Act 4: Team Login Portal (docks in smoothly at sp >= 0.48 -> 1.0)
@@ -160,6 +163,13 @@ export const HudOverlay: React.FC = () => {
         loginPortalRef.current.style.transform = `translateY(${(1.0 - a4In) * 35}px)`;
         loginPortalRef.current.style.pointerEvents = a4In > 0.5 ? 'auto' : 'none';
         loginPortalRef.current.style.visibility = a4In < 0.01 ? 'hidden' : 'visible';
+      }
+
+      // 8. Scroll indicator: visible only in early Act 1
+      if (scrollIndicatorRef.current) {
+        const scrollAlpha = 1.0 - smoothstep(0.02, 0.10, sp);
+        scrollIndicatorRef.current.style.opacity = `${scrollAlpha}`;
+        scrollIndicatorRef.current.style.visibility = scrollAlpha < 0.01 ? 'hidden' : 'visible';
       }
 
       animId = requestAnimationFrame(updateHud);
@@ -211,6 +221,7 @@ export const HudOverlay: React.FC = () => {
                 background: 'rgba(7, 9, 19, 0.7)',
                 color: '#eab308',
                 transition: 'border-color 0.2s, color 0.2s',
+                textShadow: '0 0 12px currentColor',
               }}
             >
               ACT I // THE SINGULARITY
@@ -346,6 +357,39 @@ export const HudOverlay: React.FC = () => {
           <p style={{ color: '#94a3b8', maxWidth: '500px', marginTop: '12px', fontSize: '0.95rem' }}>
             Dynamic lateral & dip vectors engaged. Camera up-vector rolls around the flight trajectory axis.
           </p>
+        </div>
+      </div>
+
+      {/* ── SCROLL TO EXPLORE INDICATOR ── */}
+      <div
+        ref={scrollIndicatorRef}
+        style={{
+          position: 'absolute',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px',
+          pointerEvents: 'none',
+          opacity: 1,
+        }}
+      >
+        <span
+          className="mono-label"
+          style={{
+            fontSize: '9px',
+            color: '#94a3b8',
+            letterSpacing: '0.2em',
+          }}
+        >
+          SCROLL TO EXPLORE
+        </span>
+        <div className="scroll-indicator-chevron">
+          <svg width="20" height="12" viewBox="0 0 20 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2L10 10L18 2" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
       </div>
 

@@ -115,7 +115,8 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ portalRef }) => {
           background: 'linear-gradient(165deg, rgba(10, 15, 30, 0.94) 0%, rgba(5, 8, 18, 0.97) 100%)',
           backdropFilter: 'blur(32px) saturate(190%)',
           border: '1px solid rgba(234, 179, 8, 0.35)',
-          boxShadow: '0 25px 65px -15px rgba(0, 0, 0, 0.95), 0 0 35px rgba(234, 179, 8, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+          boxShadow: '0 25px 65px -15px rgba(0, 0, 0, 0.95), 0 0 35px rgba(234, 179, 8, 0.15), 0 0 80px -20px rgba(6, 182, 212, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+          animation: 'shimmerBorder 4s ease-in-out infinite',
           pointerEvents: 'auto',
           display: 'flex',
           flexDirection: 'column',
@@ -417,7 +418,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ portalRef }) => {
                   }}
                   onFocus={(e) => {
                     e.target.style.borderColor = '#eab308';
-                    e.target.style.boxShadow = '0 0 12px rgba(234, 179, 8, 0.25)';
+                    e.target.style.boxShadow = '0 0 20px rgba(234, 179, 8, 0.35), inset 0 0 10px rgba(234, 179, 8, 0.08)';
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = 'rgba(148, 163, 184, 0.25)';
@@ -461,7 +462,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ portalRef }) => {
                   }}
                   onFocus={(e) => {
                     e.target.style.borderColor = '#eab308';
-                    e.target.style.boxShadow = '0 0 12px rgba(234, 179, 8, 0.25)';
+                    e.target.style.boxShadow = '0 0 20px rgba(234, 179, 8, 0.35), inset 0 0 10px rgba(234, 179, 8, 0.08)';
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = 'rgba(148, 163, 184, 0.25)';
@@ -594,13 +595,15 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ portalRef }) => {
               }}
               onMouseOver={(e) => {
                 if (!loading && !success) {
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 6px 28px rgba(234, 179, 8, 0.6)';
+                  e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 8px 35px rgba(234, 179, 8, 0.65)';
+                  e.currentTarget.style.filter = 'brightness(1.1)';
                 }
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
                 e.currentTarget.style.boxShadow = '0 4px 22px rgba(234, 179, 8, 0.45)';
+                e.currentTarget.style.filter = 'none';
               }}
             >
               {loading ? (

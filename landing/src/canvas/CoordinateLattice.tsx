@@ -42,28 +42,11 @@ export const CoordinateLattice: React.FC = () => {
       thresholds.push(seed, seed);
 
       // Cyan-Teal palette primitives
-      const isTeal = seed > 0.5;
-      const rCol = isTeal ? 0.17 : 0.02;
-      const gCol = isTeal ? 0.83 : 0.71;
-      const bCol = isTeal ? 0.75 : 0.83;
+      const distRatio = Math.abs(zRatio);
+      const rCol = 0.02 + distRatio * 0.15;
+      const gCol = 0.71 + distRatio * 0.12;
+      const bCol = 0.83 - distRatio * 0.08;
       colors.push(rCol, gCol, bCol, rCol, gCol, bCol);
-    }
-
-    // Add radial coordinate spokes
-    for (let j = 0; j < 36; j++) {
-      const angle = (j / 36) * Math.PI * 2;
-      const rad = R_BASE * 1.1;
-      const px = Math.cos(angle) * rad;
-      const pz = Math.sin(angle) * rad;
-
-      positions.push(
-        center.x, center.y, center.z,
-        center.x + px, center.y + (Math.sin(angle * 3) * 3), center.z + pz
-      );
-
-      const seed = (j / 36);
-      thresholds.push(seed, seed);
-      colors.push(0.02, 0.71, 0.83, 0.02, 0.71, 0.83);
     }
 
     const geo = new THREE.BufferGeometry();
@@ -77,11 +60,13 @@ export const CoordinateLattice: React.FC = () => {
       blending: THREE.AdditiveBlending,
       uniforms: {
         uSp: { value: 0 },
+        uTime: { value: 0 },
       },
       vertexShader: `
         attribute float aThreshold;
         attribute vec3 aColor;
         uniform float uSp;
+        uniform float uTime;
         varying vec3 vColor;
         varying float vAlpha;
 
@@ -103,6 +88,7 @@ export const CoordinateLattice: React.FC = () => {
           // Reveal based on seed threshold
           float reveal = step(aThreshold, drawProgress);
           vAlpha = reveal * (drawProgress * 0.75 + 0.1) * exitFade;
+          vAlpha *= 0.85 + 0.15 * sin(uTime * 1.5 + aThreshold * 6.28);
 
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
@@ -121,8 +107,9 @@ export const CoordinateLattice: React.FC = () => {
     return { geometry: geo, shaderMaterial: mat };
   }, []);
 
-  useFrame(() => {
+  useFrame((state) => {
     shaderMaterial.uniforms.uSp.value = scrollState.sp;
+    shaderMaterial.uniforms.uTime.value = state.clock.getElapsedTime();
   });
 
   return <lineSegments geometry={geometry} material={shaderMaterial} />;
