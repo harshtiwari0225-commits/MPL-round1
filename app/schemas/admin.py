@@ -1,6 +1,6 @@
 """Pydantic models for admin views (leaderboard, rejudge)."""
-
 from pydantic import BaseModel
+from typing import Optional
 
 from app.models import SubmissionVerdict
 
@@ -14,7 +14,7 @@ class LeaderboardRow(BaseModel):
     attempts: int
     started: bool
     expired: bool
-    seconds_remaining: int | None = None
+    seconds_remaining: Optional[int] = None
 
 
 class RejudgeResponse(BaseModel):

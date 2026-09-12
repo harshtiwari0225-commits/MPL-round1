@@ -16,7 +16,6 @@ class PublicQuestion(QuestionResponse):
     could read every hidden test in the bank. Test data now leaves the server
     only through /api/main/questions (visible cases) and the admin API.
     """
-
     test_cases: str = ""
 
 
@@ -52,19 +51,13 @@ async def get_question(question_id: int, db: AsyncSession = Depends(get_db)):
 async def sample_tests(question_id: int, db: AsyncSession = Depends(get_db)):
     """Only the non-hidden test cases."""
     rows = (
-        (
-            await db.execute(
-                select(TestCase)
-                .where(TestCase.question_id == question_id, TestCase.is_hidden.is_(False))
-                .order_by(TestCase.position, TestCase.id)
-            )
+        await db.execute(
+            select(TestCase)
+            .where(TestCase.question_id == question_id, TestCase.is_hidden.is_(False))
+            .order_by(TestCase.position, TestCase.id)
         )
-        .scalars()
-        .all()
-    )
+    ).scalars().all()
     return [
-        TestCasePublic(
-            id=c.id, stdin=c.stdin, expected_output=c.expected_output, position=c.position
-        )
+        TestCasePublic(id=c.id, stdin=c.stdin, expected_output=c.expected_output, position=c.position)
         for c in rows
     ]

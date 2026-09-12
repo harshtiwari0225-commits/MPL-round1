@@ -7,21 +7,20 @@ re-exports everything, so existing imports such as
 Importing this package registers every table on ``Base.metadata``
 (see app/main.py lifespan and reset_db.py).
 """
-
-from app.models.challenge import ChallengeSession
 from app.models.enums import (
-    ChallengeStatus,
-    CompareMode,
+    QuestionType,
     MainSubType,
+    CompareMode,
     QuestionDifficulty,
     QuestionStateStatus,
-    QuestionType,
+    ChallengeStatus,
     SubmissionVerdict,
 )
-from app.models.progress import TeamQuestionState
-from app.models.question import Question, TestCase
-from app.models.submission import Submission, SubmissionResult
 from app.models.team import Team
+from app.models.question import Question, TestCase
+from app.models.progress import TeamQuestionState
+from app.models.submission import Submission, SubmissionResult
+from app.models.challenge import ChallengeSession
 
 __all__ = [
     "QuestionType",

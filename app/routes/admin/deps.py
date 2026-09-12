@@ -1,6 +1,5 @@
 """Shared admin dependency: the admin-passcode header check."""
-
-from fastapi import Header, HTTPException
+from fastapi import HTTPException, Header
 
 from app.core.config import settings
 

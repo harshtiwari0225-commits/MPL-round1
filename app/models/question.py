@@ -1,19 +1,11 @@
 from sqlalchemy import (
-    Boolean,
-    Column,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-)
-from sqlalchemy import (
-    Enum as SQLEnum,
+    Column, Integer, String, Boolean, Float, Text,
+    ForeignKey, Enum as SQLEnum,
 )
 from sqlalchemy.orm import relationship
 
 from app.database import Base
-from app.models.enums import CompareMode, MainSubType, QuestionDifficulty, QuestionType
+from app.models.enums import QuestionType, MainSubType, CompareMode, QuestionDifficulty
 
 
 class Question(Base):
@@ -62,7 +54,6 @@ class TestCase(Base):
     is_hidden=False  -> shown to the team, used by "Run"
     is_hidden=True   -> never leaves the server, used by "Submit"
     """
-
     __tablename__ = "test_cases"
 
     id = Column(Integer, primary_key=True, index=True)

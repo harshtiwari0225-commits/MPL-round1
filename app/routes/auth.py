@@ -1,11 +1,11 @@
-import random
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from datetime import datetime, timezone
+import random
 
 from app.database import get_db
-from app.models import Question, QuestionStateStatus, QuestionType, Team, TeamQuestionState
+from app.models import Team, Question, QuestionType, TeamQuestionState, QuestionStateStatus
 from app.schemas import TeamLogin, TeamStatusResponse
 from app.services.access import new_session_token, now_naive_utc
 
@@ -27,30 +27,22 @@ async def login(login_data: TeamLogin, db: AsyncSession = Depends(get_db)):
         team.timer_start_time = now_naive_utc()
 
         main_questions = (
-            (
-                await db.execute(
-                    select(Question)
-                    .where(Question.type == QuestionType.MAIN)
-                    .order_by(Question.order_index, Question.id)
-                )
+            await db.execute(
+                select(Question)
+                .where(Question.type == QuestionType.MAIN)
+                .order_by(Question.order_index, Question.id)
             )
-            .scalars()
-            .all()
-        )
+        ).scalars().all()
 
         for question in main_questions:
             existing = (
-                (
-                    await db.execute(
-                        select(TeamQuestionState).where(
-                            TeamQuestionState.team_id == team.id,
-                            TeamQuestionState.question_id == question.id,
-                        )
+                await db.execute(
+                    select(TeamQuestionState).where(
+                        TeamQuestionState.team_id == team.id,
+                        TeamQuestionState.question_id == question.id,
                     )
                 )
-                .scalars()
-                .first()
-            )
+            ).scalars().first()
             if not existing:
                 db.add(
                     TeamQuestionState(

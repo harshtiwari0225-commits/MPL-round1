@@ -1,8 +1,7 @@
 """Pydantic models for teams, login, and the legacy challenge/boost flows."""
-
-from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict
+from typing import Optional
+from datetime import datetime
 
 
 class TeamBase(BaseModel):
@@ -22,10 +21,10 @@ class TeamStatusResponse(BaseModel):
     id: int
     name: str
     points: int
-    timer_start_time: datetime | None
+    timer_start_time: Optional[datetime]
     extra_time_seconds: int
-    main_question_id: int | None
-    session_token: str | None = None  # returned on login only
+    main_question_id: Optional[int]
+    session_token: Optional[str] = None   # returned on login only
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -37,7 +36,7 @@ class ChallengeCreate(BaseModel):
     question_id: int
     team1_id: int
     team2_id: int
-    team3_id: int | None = None
+    team3_id: Optional[int] = None
 
 
 class AssignBoost(BaseModel):

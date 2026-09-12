@@ -1,6 +1,5 @@
-import argparse
 import asyncio
-
+import argparse
 from sqlalchemy.future import select
 
 from app.database import AsyncSessionLocal

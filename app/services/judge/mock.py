@@ -10,20 +10,21 @@ with MOCK_EXECUTE_PYTHON=true.
 The subprocess mechanics live in ``execution.py``; this module is only the
 MockJudge facade behind the shared judge interface (run_batch / health).
 """
-
 from __future__ import annotations
 
 import asyncio
 import os
 import shutil
 import tempfile
+from typing import Dict, List
 
 from app.core.config import settings
-from app.services.judge.base import STATUS_INTERNAL_ERROR, JudgeJob, JudgeOutcome
+from app.services.judge.base import JudgeJob, JudgeOutcome, STATUS_INTERNAL_ERROR
 from app.services.judge.execution import compile_and_run, execute
 
 
 class MockJudge:
+
     def __init__(self):
         self._executors = {
             "python": self._run_python,
@@ -32,14 +33,14 @@ class MockJudge:
             "java": self._run_java,
         }
 
-    async def run_batch(self, jobs: list[JudgeJob]) -> list[JudgeOutcome]:
+    async def run_batch(self, jobs: List[JudgeJob]) -> List[JudgeOutcome]:
         # Run sequentially; a real Judge0 parallelises in its worker pool.
         return [await asyncio.to_thread(self._run_one, job) for job in jobs]
 
     async def health(self) -> bool:
         return True
 
-    async def languages(self) -> list[dict]:
+    async def languages(self) -> List[Dict]:
         return [
             {"id": lid, "name": name}
             for lid, (key, name) in zip(
