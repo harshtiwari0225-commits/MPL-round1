@@ -6,6 +6,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { scrollState } from '../state/scrollController';
 
 // Custom Vignette Shader: Darkness 0.95, Offset 1.25
 // Kept under 1.0 to prevent ACES curve color inversions in deep navy corners
@@ -45,7 +46,7 @@ const FilmGrainShader = {
   uniforms: {
     tDiffuse: { value: null },
     uTime: { value: 0 },
-    uGrainAmount: { value: 0.032 },
+    uGrainAmount: { value: 0.038 },
   },
   vertexShader: `
     varying vec2 vUv;
@@ -72,10 +73,43 @@ const FilmGrainShader = {
   `,
 };
 
+const ChromaticAberrationShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uOffset: { value: 0.003 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uOffset;
+    varying vec2 vUv;
+
+    void main() {
+      vec2 dir = vUv - 0.5;
+      float dist = length(dir);
+      vec2 offset = dir * dist * uOffset;
+
+      float r = texture2D(tDiffuse, vUv + offset).r;
+      float g = texture2D(tDiffuse, vUv).g;
+      float b = texture2D(tDiffuse, vUv - offset).b;
+      float a = texture2D(tDiffuse, vUv).a;
+
+      gl_FragColor = vec4(r, g, b, a);
+    }
+  `,
+};
+
 export const PostProcessing: React.FC = () => {
   const { gl, scene, camera, size } = useThree();
   const composerRef = useRef<EffectComposer | null>(null);
   const grainPassRef = useRef<ShaderPass | null>(null);
+  const chromaPassRef = useRef<ShaderPass | null>(null);
 
   const composer = useMemo(() => {
     // Post-processing pipeline order:
@@ -86,10 +120,10 @@ export const PostProcessing: React.FC = () => {
     const renderPass = new RenderPass(scene, camera);
     comp.addPass(renderPass);
 
-    // 2. UnrealBloomPass: Strength 0.5, radius 0.4, threshold 1.15, smoothWidth 0.35
+    // 2. UnrealBloomPass: Strength 0.65, radius 0.4, threshold 1.15, smoothWidth 0.35
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(size.width, size.height),
-      0.5,   // strength
+      0.65,   // strength
       0.4,   // radius
       1.15   // threshold (pierced by gain 1.3 starlight/gold)
     );
@@ -98,6 +132,11 @@ export const PostProcessing: React.FC = () => {
     // 3. Custom Vignette: Darkness 0.95, offset 1.25
     const vignettePass = new ShaderPass(VignetteShader);
     comp.addPass(vignettePass);
+
+    // Chromatic Aberration
+    const chromaPass = new ShaderPass(ChromaticAberrationShader);
+    chromaPassRef.current = chromaPass;
+    comp.addPass(chromaPass);
 
     // 4. OutputPass (ACESFilmicToneMapping & sRGB display encode)
     const outputPass = new OutputPass();
@@ -122,6 +161,10 @@ export const PostProcessing: React.FC = () => {
   useFrame((state) => {
     if (grainPassRef.current) {
       grainPassRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
+    }
+    if (chromaPassRef.current) {
+      const vel = Math.abs(scrollState.velocity);
+      chromaPassRef.current.uniforms.uOffset.value = 0.002 + vel * 0.8;
     }
     composer.render();
   }, 1);
