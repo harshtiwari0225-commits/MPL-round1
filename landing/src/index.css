@@ -34,6 +34,11 @@
 
 html, body {
   background-color: var(--bg-cosmic);
+  background-image: url('/cosmic_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--hud-text);
   font-family: var(--font-sans);
   overflow-x: hidden;
@@ -60,6 +65,9 @@ html, body {
   overflow: hidden;
   pointer-events: none;
   z-index: 10;
+  background-image: url('/cosmic_bg.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
 /* 3D Canvas wrapper */

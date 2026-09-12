@@ -49,23 +49,6 @@ export const CoordinateLattice: React.FC = () => {
       colors.push(rCol, gCol, bCol, rCol, gCol, bCol);
     }
 
-    // Add radial coordinate spokes
-    for (let j = 0; j < 36; j++) {
-      const angle = (j / 36) * Math.PI * 2;
-      const rad = R_BASE * 1.1;
-      const px = Math.cos(angle) * rad;
-      const pz = Math.sin(angle) * rad;
-
-      positions.push(
-        center.x, center.y, center.z,
-        center.x + px, center.y + (Math.sin(angle * 3) * 3), center.z + pz
-      );
-
-      const seed = (j / 36);
-      thresholds.push(seed, seed);
-      colors.push(0.02, 0.71, 0.83, 0.02, 0.71, 0.83);
-    }
-
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geo.setAttribute('aThreshold', new THREE.Float32BufferAttribute(thresholds, 1));

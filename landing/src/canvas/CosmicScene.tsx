@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { useMemo, useEffect } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CameraRig } from './CameraRig';
 import { EmblemBeadCloud } from './EmblemBeadCloud';
@@ -8,6 +8,35 @@ import { CelestialTunnel } from './CelestialTunnel';
 import { Trajectories } from './Trajectories';
 import { ArenaPortals } from './ArenaPortals';
 import { PostProcessing } from './PostProcessing';
+
+const CosmicBackground: React.FC = () => {
+  const { scene } = useThree();
+
+  useEffect(() => {
+    let active = true;
+    let bgTexture: THREE.Texture | null = null;
+    const loader = new THREE.TextureLoader();
+
+    loader.load('/cosmic_bg.jpg', (texture) => {
+      if (!active) {
+        texture.dispose();
+        return;
+      }
+      texture.colorSpace = THREE.SRGBColorSpace;
+      bgTexture = texture;
+      scene.background = texture;
+    });
+
+    return () => {
+      active = false;
+      if (bgTexture) {
+        bgTexture.dispose();
+      }
+    };
+  }, [scene]);
+
+  return null;
+};
 
 export const CosmicScene: React.FC = () => {
   // DPR clamped to 1.0 (mobile) and 1.5 (desktop)
@@ -43,6 +72,9 @@ export const CosmicScene: React.FC = () => {
           scene.fog = new THREE.Fog('#070913', 20, 240);
         }}
       >
+        {/* Cosmic Background Texture */}
+        <CosmicBackground />
+
         {/* Stellar key light and ambient cosmic fill */}
         <ambientLight intensity={0.4} color="#1b2552" />
         <directionalLight
